@@ -1,0 +1,38 @@
+[core]
+  autocrtl = true
+  excludesfile = ~/.gitignore_global
+	whitespace = trailing-space,space-before-tab,indent-with-non-tab,blank-at-eol,blank-at-eof
+  filemode = false
+  editor=vim -c 'startinsert'
+  excludesfile = ~/.gitignore_global
+
+[color]
+  ui = auto
+[color "diff"]
+  meta = yellow
+
+[push]
+  default = upstream
+
+[alias]
+  st = status
+  ci = commit
+  br = branch
+  co = checkout
+  df = diff
+  lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr - %cn)%Creset' --abbrev-commit --date=relative
+  bn = checkout -b
+  tree = log --graph --simplify-by-decoration --pretty=format:'%d' --all
+  aa = add --all
+  ca = commit --amend
+
+[branch]
+  autosetupmerge = true
+  autosetuprebase = always
+
+[diff]
+  mnemonicprefix = true
+
+[merge]
+  stat = true
+
