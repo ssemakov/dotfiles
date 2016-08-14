@@ -1,0 +1,48 @@
+#!/usr/bin/env ruby
+# coding: utf-8
+# Monitor changes and syncs changed files beetween two directories. 
+# It syncs only changed file, so the network footprint and time wouldbe low in case of 'syncing as you go' i.e. edit code on the local machine and auto-sync it to remote
+# Doesn't support directories creation, but will work with files recursivly with the respect to the existing tree
+# Doesn't support ssh directly, but can be used over ssh mount. 
+# requres filewatcher gem https://github.com/thomasfl/filewatcher
+
+require 'filewatcher'
+
+class String
+  def red;            "\e[31m#{self}\e[0m" end
+  def green;          "\e[32m#{self}\e[0m" end
+  def cyan;           "\e[36m#{self}\e[0m" end
+
+  def bold;           "\e[1m#{self}\e[22m" end
+  def italic;         "\e[3m#{self}\e[23m" end
+  def underline;      "\e[4m#{self}\e[24m" end
+end
+
+if ARGV.count < 2
+  puts "Usage: fsync [from/path] [to/path]"
+  abort
+end
+
+paths = []
+ARGV.each{ |a|  paths << a }
+
+from_path = File.expand_path paths[0]
+to_path = File.expand_path paths[1]
+
+puts "Start monitoring".cyan
+puts "#{from_path}".bold 
+puts "and auto syncing it into".cyan
+puts "#{to_path} ...".bold
+
+FileWatcher.new([from_path]).watch do |filename|
+  if filename.include? from_path
+    remote_filename = File.expand_path(to_path + filename.split(from_path)[1])
+    puts "syncing #{filename} to #{remote_filename}".green
+    system "rsync #{filename} #{remote_filename}"  #> /dev/null 2>&1"
+  else
+    puts "Can't find changed filename's directory in the from path\n".red
+    puts "filename: #{filename}"
+    puts "from path: #{from_path}"
+  end
+
+end
