@@ -16,3 +16,4 @@ alias apache-reload='apache-stop; apache-start'
 
 alias ws='cd ~/workspace'
 alias vbuntu='ssh ubuntubox -p 3022'
+alias ngx='sudo service nginx restart'
