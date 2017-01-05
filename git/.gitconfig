@@ -16,7 +16,7 @@
 
 [alias]
   st = status
-  ci = commit -v
+  ci = commit --verbose
   br = branch
   co = checkout
   df = diff
@@ -25,7 +25,8 @@
   tree = log --graph --simplify-by-decoration --pretty=format:'%d' --all
   aa = add --all
   ca = commit --amend
-
+  lgb = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset%n' --abbrev-commit --date=relative --branches
+  lg3 = !git --no-pager log -n 3 --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr - %cn)%Creset' --abbrev-commit --date=relative
 [branch]
   autosetupmerge = true
   autosetuprebase = always
@@ -36,3 +37,7 @@
 [merge]
   stat = true
 
+[filter "lfs"]
+	clean = git-lfs clean %f
+	smudge = git-lfs smudge %f
+	required = true
