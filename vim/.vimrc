@@ -2,7 +2,17 @@ set term=xterm-256color
 filetype plugin indent on
 syntax on
 
-set number
+" turn hybrid line numbers on
+:set number relativenumber
+:set nu rnu
+
+" turn hybrid line numbers off
+":set nonumber norelativenumber
+":set nonu nornu
+
+" toggle hybrid line numbers
+":set number! relativenumber!
+":set nu! rnu!
 
 autocmd FileType gitcommit setlocal spell
 set complete+=kspell
