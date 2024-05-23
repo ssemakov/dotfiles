@@ -1,3 +1,6 @@
+[user]
+	name = Simon Semakov
+  email = ssemakov@wistia.com
 [core]
   autocrtl = true
   excludesfile = ~/.gitignore_global
@@ -5,39 +8,61 @@
   filemode = false
   editor=vim -c 'startinsert'
   excludesfile = ~/.gitignore_global
-
 [color]
   ui = auto
 [color "diff"]
   meta = yellow
-
 [push]
   default = upstream
-
 [alias]
   st = status
   ci = commit --verbose
   br = branch
   co = checkout
-  df = diff
+  df = difftool
   lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr - %cn)%Creset' --abbrev-commit --date=relative
+  dlog = "!f() { GIT_EXTERNAL_DIFF=difft git log -p --ext-diff $@; }; f"
   bn = checkout -b
   tree = log --graph --simplify-by-decoration --pretty=format:'%d' --all
   aa = add --all
   ca = commit --amend
   lgb = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset%n' --abbrev-commit --date=relative --branches
   lg3 = !git --no-pager log -n 3 --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr - %cn)%Creset' --abbrev-commit --date=relative
+  purge-branches = "!f() { \
+        local branch=$(git branch --show-current); \
+        [[ "$branch" == \"master\" || "$branch" == \"main\" ]] && \
+            (git branch --merged | grep -v \" ${branch}$\" | xargs -n 1 git branch -d) || \
+            (echo 'Must be on \"master\" or \"main\" branch.'); \
+  }; f"
+
 [branch]
   autosetupmerge = true
   autosetuprebase = always
 
 [diff]
   mnemonicprefix = true
+  tool = difftastic
+
+[difftool]
+  prompt = false
+
+[difftool "difftastic"]
+        cmd = difft "$LOCAL" "$REMOTE"
+
+[pager]
+        difftool = true
 
 [merge]
   stat = true
 
 [filter "lfs"]
-	clean = git-lfs clean %f
-	smudge = git-lfs smudge %f
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
 	required = true
+	process = git-lfs filter-process
+[apply]
+	whitespace = fix
+[credential]
+	helper = osxkeychain
+[rerere]
+	enabled = true
