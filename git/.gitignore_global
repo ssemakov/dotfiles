@@ -1,6 +1,4 @@
 *~
-.DS_Store
-*.sublime-project
-*.sublime-workspace
 exclude.txt
 .rake_tasks
+.tool-versions
