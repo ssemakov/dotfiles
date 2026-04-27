@@ -1,12 +1,13 @@
 # If you come from bash you might have to change your $PATH.
 
 # Path to your oh-my-zsh installation.
-export ZSH=/Users/ssemakov/.oh-my-zsh
+export ZSH=~/.oh-my-zsh
 
 # Set name of the theme to load. Optionally, if you set this to "random"
 # it'll load a random theme each time that oh-my-zsh is loaded.
 # See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
-ZSH_THEME="mira-simon"
+#ZSH_THEME="mira-simon"
+ZSH_THEME="af-magic"
 
 # Uncomment the following line to use case-sensitive completion.
 # CASE_SENSITIVE="true"
@@ -43,14 +44,12 @@ ZSH_THEME="mira-simon"
 # The optional three formats: "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
 # HIST_STAMPS="mm/dd/yyyy"
 
-# Would you like to use another custom folder than $ZSH/custom?
-# ZSH_CUSTOM=/path/to/new-custom-folder
 
 # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git bgnotify asdf bundler rails rake-fast ruby ssh-agent tmux)
+plugins=(git bgnotify bundler rails rake-fast ruby rvm tmux)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -74,20 +73,108 @@ fi
 # ssh
 # export SSH_KEY_PATH="~/.ssh/rsa_id"
 
+function git_branch_local_ls() {
+  git for-each-ref \
+  --format='%(color:blue)%(committerdate:short)%(color:reset) | %(color:red)%(committerdate:relative)%(color:reset) | %(authorname) | %(color:yellow)%(refname:short)%(color:reset)' \
+  --sort=-committerdate refs/heads/ | column -t -s '|' | \
+  if [ -n "$1" ]
+    then
+      head -n $1
+  else
+    head -n 500
+  fi
+}
+
+# Safehousse sandbox for AI agents
+
+safe() {
+  local -a safehouse_args cmd_args
+
+  # Folders always granted read/write access in the sandbox — extend this list as needed
+  local -a safehouse_rw_dirs=(
+    "$HOME/.crit"
+  )
+
+  safehouse_args=(--add-dirs-ro="$HOME/workspace")
+  for dir in "${safehouse_rw_dirs[@]}"; do
+    safehouse_args+=(--add-dirs="$dir")
+  done
+
+  while (( $# )); do
+    case "$1" in
+      --add-dir)
+        shift
+        if (( $# == 0 )); then
+          echo "safe: --add-dir requires a directory argument" >&2
+          return 1
+        fi
+        safehouse_args+=(--add-dirs-ro="$1")
+        ;;
+      --add-dir=*)
+        safehouse_args+=(--add-dirs-ro="${1#--add-dir=}")
+        ;;
+      *)
+        cmd_args+=("$1")
+        ;;
+    esac
+    shift
+  done
+
+  safehouse "${safehouse_args[@]}" "${cmd_args[@]}"
+}
+
+# Sandboxed — the default. Just type the command name.
+claude()   { safe claude "$@"; }
+codex()    { safe codex "$@"; }
+amp()      { safe amp  "$@"; }
+gemini()   { NO_BROWSER=true safe gemini "$@"; }
+
+
 # Set personal aliases, overriding those provided by oh-my-zsh libs,
 # plugins, and themes. Aliases can be placed here, though oh-my-zsh
 # users are encouraged to define aliases within the ZSH_CUSTOM folder.
 # For a full list of active aliases, run `alias`.
-#
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
+
+setopt HIST_EXPIRE_DUPS_FIRST
+setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_FIND_NO_DUPS
+setopt HIST_IGNORE_SPACE
+setopt HIST_SAVE_NO_DUPS
+setopt HIST_REDUCE_BLANKS
+setopt HIST_VERIFY
+
 autoload -Uz compinit && compinit
 
-# . /opt/homebrew/opt/asdf/libexec/asdf.sh
-if command -v pyenv 1>/dev/null 2>&1; then
-  eval "$(pyenv init -)"
+export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
+export WISTIA_HOME=~/wistia
+export WISTIA_TEAMS="@wistia/live"
+#export WISTIA_TEAMS="@wistia/app-platform"
+export HISTCONTROL=ignoredups:erasedups  # no duplicate entries
+export HISTSIZE=100000                   # big big history
+export HISTFILESIZE=100000               # big big history
+export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
+
+. "$HOME/.asdf/asdf.sh"
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+AWS_SESSION_TOKEN_TTL=10h
+export PATH="/opt/homebrew/opt/mysql@8.4/bin:$PATH"
+
+export WASMTIME_HOME="$HOME/.wasmtime"
+
+export PATH="$HOME/workspace/dotfiles/bin:$HOME/workspace/bin:$HOME/wistia/livekit-utils/bin:$WASMTIME_HOME/bin:$HOME/.local/bin:$PATH"
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f "$HOME/Downloads/google-cloud-sdk/path.zsh.inc" ]; then . "$HOME/Downloads/google-cloud-sdk/path.zsh.inc"; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f "$HOME/Downloads/google-cloud-sdk/completion.zsh.inc" ]; then . "$HOME/Downloads/google-cloud-sdk/completion.zsh.inc"; fi
+export PATH="/opt/homebrew/opt/haproxy@2.8/bin:$PATH"
+
+# Ghostty CLI (the `ghostty` binary lives inside the .app bundle)
+if [ -d "/Applications/Ghostty.app/Contents/MacOS" ]; then
+  export PATH="/Applications/Ghostty.app/Contents/MacOS:$PATH"
 fi
-export GOPATH=$HOME/go
-export PATH=$PATH:$GOPATH/bin
-export PATH="$HOME/.local/bin:$PATH"

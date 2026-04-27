@@ -63,9 +63,7 @@
 [apply]
 	whitespace = fix
 [credential]
-	helper = osxkeychain
-	helper =
-	helper = /usr/local/share/gcm-core/git-credential-manager
+	helper = manager-core
 [rerere]
 	enabled = true
 [credential "https://dev.azure.com"]
