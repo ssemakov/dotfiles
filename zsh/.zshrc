@@ -50,7 +50,7 @@ ZSH_THEME="mira-simon"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git bgnotify boot2docker bundler rails rake-fast ruby rvm ssh-agent tmux)
+plugins=(git bgnotify asdf bundler rails rake-fast ruby ssh-agent tmux)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -84,14 +84,10 @@ fi
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 autoload -Uz compinit && compinit
 
-# enable gpg-agent
-eval $(gpg-agent --daemon)
-GPG_TTY=$(tty)
-export GPG_TTY
-if [ -f "${HOME}/.gpg-agent-info" ]; then
-  . "${HOME}/.gpg-agent-info"
-  export GPG_AGENT_INFO
-  export SSH_AUTH_SOCK
+# . /opt/homebrew/opt/asdf/libexec/asdf.sh
+if command -v pyenv 1>/dev/null 2>&1; then
+  eval "$(pyenv init -)"
 fi
-
-export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
+export GOPATH=$HOME/go
+export PATH=$PATH:$GOPATH/bin
+export PATH="$HOME/.local/bin:$PATH"

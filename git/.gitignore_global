@@ -2,3 +2,4 @@
 exclude.txt
 .rake_tasks
 .tool-versions
+.byebug_history
