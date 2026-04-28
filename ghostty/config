@@ -1,2 +1,5 @@
+theme = TokyoNight Night
+
 # Match iTerm-style true-black background so tmux colors pop
+# (set after `theme` so it overrides the theme's background)
 background = 000000

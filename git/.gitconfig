@@ -1,6 +1,3 @@
-[user]
-	name = Simon Semakov
-  email = ssemakov@wistia.com
 [core]
   autocrtl = true
   excludesfile = ~/.gitignore_global
@@ -63,9 +60,7 @@
 [apply]
 	whitespace = fix
 [credential]
-	helper = osxkeychain
-	helper =
-	helper = /usr/local/share/gcm-core/git-credential-manager
+	helper = manager-core
 [rerere]
 	enabled = true
 [credential "https://dev.azure.com"]
