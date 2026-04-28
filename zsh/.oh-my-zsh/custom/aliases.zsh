@@ -20,3 +20,22 @@ alias pg-restart='pg-stop; pg-start'
 
 alias ws='cd ~/workspace'
 alias vbuntu='ssh ubuntubox -p 3022'
+
+alias gl="git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative \$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')..\$(git rev-parse --abbrev-ref HEAD) | cat -n"
+alias gd="git branch -d"
+alias gD="git branch -D"
+
+alias ww='cd ~/wistia/wistia && git remote update > /dev/null && git status -sbuno'
+alias slo='cd ~/wistia/slo-scripts && git remote update > /dev/null && git status -sbuno'
+
+# Go forward in Git commit hierarchy towards a particular commit
+# Usage: gfwd v1.2.7
+gfwd() {
+    git checkout $(git rev-list --topo-order HEAD.."$1" | tail -1)
+}
+
+# Go back one commit
+alias gbck='git checkout HEAD~1'
+
+# Download S3 recording with EngineeringAccess profile
+alias dws3='download_s3_recording.sh --profile EngineeringAccess'
