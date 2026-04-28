@@ -147,9 +147,6 @@ setopt HIST_VERIFY
 autoload -Uz compinit && compinit
 
 export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
-export WISTIA_HOME=~/wistia
-export WISTIA_TEAMS="@wistia/live"
-#export WISTIA_TEAMS="@wistia/app-platform"
 export HISTCONTROL=ignoredups:erasedups  # no duplicate entries
 export HISTSIZE=100000                   # big big history
 export HISTFILESIZE=100000               # big big history
@@ -165,7 +162,7 @@ export PATH="/opt/homebrew/opt/mysql@8.4/bin:$PATH"
 
 export WASMTIME_HOME="$HOME/.wasmtime"
 
-export PATH="$HOME/workspace/dotfiles/bin:$HOME/workspace/bin:$HOME/wistia/livekit-utils/bin:$WASMTIME_HOME/bin:$HOME/.local/bin:$PATH"
+export PATH="$HOME/workspace/dotfiles/bin:$HOME/workspace/bin:$WASMTIME_HOME/bin:$HOME/.local/bin:$PATH"
 
 # The next line updates PATH for the Google Cloud SDK.
 if [ -f "$HOME/Downloads/google-cloud-sdk/path.zsh.inc" ]; then . "$HOME/Downloads/google-cloud-sdk/path.zsh.inc"; fi

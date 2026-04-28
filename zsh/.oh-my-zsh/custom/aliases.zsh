@@ -25,9 +25,6 @@ alias gl="git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %
 alias gd="git branch -d"
 alias gD="git branch -D"
 
-alias ww='cd ~/wistia/wistia && git remote update > /dev/null && git status -sbuno'
-alias slo='cd ~/wistia/slo-scripts && git remote update > /dev/null && git status -sbuno'
-
 # Go forward in Git commit hierarchy towards a particular commit
 # Usage: gfwd v1.2.7
 gfwd() {
