@@ -97,7 +97,7 @@ safe() {
 
   safehouse_args=(--add-dirs-ro="$HOME/workspace")
   for dir in "${safehouse_rw_dirs[@]}"; do
-    safehouse_args+=(--add-dirs="$dir")
+    [ -d "$dir" ] && safehouse_args+=(--add-dirs="$dir")
   done
 
   while (( $# )); do
@@ -152,7 +152,12 @@ export HISTSIZE=100000                   # big big history
 export HISTFILESIZE=100000               # big big history
 export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
 
-. "$HOME/.asdf/asdf.sh"
+# asdf — pick whichever install location is present (Homebrew or $HOME)
+if [ -f "/opt/homebrew/opt/asdf/libexec/asdf.sh" ]; then
+  . "/opt/homebrew/opt/asdf/libexec/asdf.sh"
+elif [ -f "$HOME/.asdf/asdf.sh" ]; then
+  . "$HOME/.asdf/asdf.sh"
+fi
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
