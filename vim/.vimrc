@@ -34,6 +34,13 @@ set term=xterm-256color
 filetype plugin indent on
 syntax on
 
+" Colors
+if has('termguicolors')
+  set termguicolors
+endif
+set background=dark
+silent! colorscheme retrobox
+
 " turn hybrid line numbers on
 :set number relativenumber
 :set nu rnu

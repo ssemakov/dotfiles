@@ -6,3 +6,4 @@ exclude.txt
 draft.md
 .crit*
 Session.vim
+.worktrees
