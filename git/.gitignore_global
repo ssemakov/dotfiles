@@ -5,3 +5,4 @@ exclude.txt
 .byebug_history
 draft.md
 .crit*
+Session.vim
