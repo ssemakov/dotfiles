@@ -1,0 +1,35 @@
+;; Host-specific safehouse overrides for ssemakov's machine.
+;; Symlinked into ~/.config/agent-safehouse/local-overrides.sb (auto-loaded).
+
+;; --- Network ---
+;; 20-network.sb already opens the network. Re-asserting so future tightening
+;; of the base profile doesn't silently break agent flows that need outbound
+;; HTTPS: rubocop fetching rule packs, gem/npm/cargo/go installs, and the
+;; agent's own API calls back to Anthropic/OpenAI/etc.
+(allow network*)
+
+;; --- Tool caches (read/write) ---
+;; Tools that fetch external resources expect to cache them outside the
+;; workdir. Granting RW so first-run downloads succeed instead of crashing
+;; mid-lint/mid-install.
+(allow file-read* file-write*
+  (home-subpath "/.cache")           ;; rubocop, ruff, mypy, pip, claude
+  (home-subpath "/Library/Caches")   ;; bundler, ruby-build, generic macOS
+  (home-subpath "/.bundle")          ;; bundler config + lock cache
+  (home-subpath "/.gem")             ;; rubygems
+  (home-subpath "/.npm")             ;; npm
+  (home-subpath "/.yarn")            ;; yarn classic
+  (home-subpath "/Library/pnpm")     ;; pnpm store
+  (home-subpath "/go/pkg/mod")       ;; go modules
+  (home-subpath "/.cargo")           ;; cargo registry
+  (home-subpath "/.rustup")          ;; rust toolchains
+)
+
+;; --- Tool config (read-only) ---
+;; Some tools refuse to start without reading their dotfiles.
+(allow file-read*
+  (home-literal "/.gemrc")
+  (home-literal "/.npmrc")
+  (home-literal "/.yarnrc")
+  (home-literal "/.yarnrc.yml")
+)
