@@ -25,6 +25,14 @@
   (home-subpath "/.rustup")          ;; rust toolchains
 )
 
+;; --- Homebrew (read/write) ---
+;; Codex (and other agents) self-update via `brew upgrade --cask`, which writes
+;; to /opt/homebrew/var/homebrew/locks/* and the Caskroom. Granting RW so
+;; brew-driven self-updates don't error out on the lockfile.
+(allow file-read* file-write*
+  (subpath "/opt/homebrew")
+)
+
 ;; --- Tool config (read-only) ---
 ;; Some tools refuse to start without reading their dotfiles.
 (allow file-read*

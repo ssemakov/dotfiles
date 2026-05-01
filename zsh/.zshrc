@@ -96,6 +96,8 @@ safe() {
   )
 
   safehouse_args=(--add-dirs-ro="$HOME/workspace")
+  [ -f "$HOME/.config/agent-safehouse/local-overrides.sb" ] && \
+    safehouse_args+=(--append-profile="$HOME/.config/agent-safehouse/local-overrides.sb")
   for dir in "${safehouse_rw_dirs[@]}"; do
     [ -d "$dir" ] && safehouse_args+=(--add-dirs="$dir")
   done
