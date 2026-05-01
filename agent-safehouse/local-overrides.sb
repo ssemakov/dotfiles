@@ -41,3 +41,19 @@
   (home-literal "/.yarnrc")
   (home-literal "/.yarnrc.yml")
 )
+
+;; --- System resolver config (read-only) ---
+;; Ruby's stdlib `resolv` (loaded transitively by rubocop's
+;; Style/IpAddresses cop) opens /etc/resolv.conf at require-time and
+;; raises EPERM under the sandbox if it's blocked, killing the process
+;; before any lint runs.
+(allow file-read*
+  (literal "/etc/resolv.conf")
+  (literal "/private/etc/resolv.conf")  ;; macOS canonical path
+  (literal "/var/run/resolv.conf")      ;; symlink target on macOS
+  (literal "/private/var/run/resolv.conf")
+  (literal "/etc/hosts")
+  (literal "/private/etc/hosts")
+  (literal "/etc/services")
+  (literal "/private/etc/services")
+)
