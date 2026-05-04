@@ -49,7 +49,7 @@ ZSH_THEME="af-magic"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git bgnotify bundler rails rake-fast ruby rvm tmux)
+plugins=(git bgnotify bundler rails rake-fast ruby rvm tmux vi-mode)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -147,6 +147,12 @@ setopt HIST_REDUCE_BLANKS
 setopt HIST_VERIFY
 
 autoload -Uz compinit && compinit
+
+# vi-mode tweaks: shrink mode-switch lag and keep history search on ctrl-p/n/r
+export KEYTIMEOUT=40
+bindkey '^P' up-history
+bindkey '^N' down-history
+bindkey '^R' history-incremental-search-backward
 
 export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
 export HISTCONTROL=ignoredups:erasedups  # no duplicate entries
