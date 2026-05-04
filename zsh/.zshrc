@@ -169,7 +169,7 @@ export PATH="/opt/homebrew/opt/mysql@8.4/bin:$PATH"
 
 export WASMTIME_HOME="$HOME/.wasmtime"
 
-export PATH="$HOME/workspace/dotfiles/bin:$HOME/workspace/bin:$WASMTIME_HOME/bin:$HOME/.local/bin:$PATH"
+export PATH="$HOME/bin:$HOME/workspace/dotfiles/bin:$HOME/workspace/bin:$WASMTIME_HOME/bin:$HOME/.local/bin:$PATH"
 
 # The next line updates PATH for the Google Cloud SDK.
 if [ -f "$HOME/Downloads/google-cloud-sdk/path.zsh.inc" ]; then . "$HOME/Downloads/google-cloud-sdk/path.zsh.inc"; fi
