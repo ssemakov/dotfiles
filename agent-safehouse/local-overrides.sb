@@ -42,6 +42,16 @@
   (home-literal "/.yarnrc.yml")
 )
 
+;; --- Process listing (pgrep/ps) ---
+;; `pgrep` / `ps` query the kernel via sysmond; without this lookup the
+;; sandbox returns "sysmond service not found" and Cannot get process list.
+;; Used by rails-console / dev-server skills that pgrep for an existing
+;; instance before spawning one.
+(allow mach-lookup
+  (global-name "com.apple.sysmond")
+)
+(allow sysctl-read)
+
 ;; --- System resolver config (read-only) ---
 ;; Ruby's stdlib `resolv` (loaded transitively by rubocop's
 ;; Style/IpAddresses cop) opens /etc/resolv.conf at require-time and
