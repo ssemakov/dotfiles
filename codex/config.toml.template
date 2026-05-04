@@ -30,16 +30,16 @@ page_down = "ctrl-f"
 page_up = "ctrl-b"
 jump_top = "g"
 jump_bottom = "shift-g"
-close = ["q", "esc"]
-close_transcript = ["q", "esc"]
+close = "q"
+close_transcript = ["x"]
 
 [tui.keymap.list]
 move_down = "j"
 move_up = "k"
-cancel = ["q", "esc"]
+cancel = "q"
 
 [tui.keymap.approval]
 approve = "y"
 decline = "n"
 deny = "d"
-cancel = ["q", "esc"]
+cancel = "esc"
