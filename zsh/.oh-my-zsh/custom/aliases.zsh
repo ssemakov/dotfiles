@@ -33,6 +33,3 @@ gfwd() {
 
 # Go back one commit
 alias gbck='git checkout HEAD~1'
-
-# Download S3 recording with EngineeringAccess profile
-alias dws3='download_s3_recording.sh --profile EngineeringAccess'
