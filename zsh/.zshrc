@@ -53,6 +53,13 @@ plugins=(git bgnotify bundler rails rake-fast ruby rvm tmux vi-mode)
 
 source $ZSH/oh-my-zsh.sh
 
+# Inside nvim's embedded terminal, drop af-magic's COLUMNS-sized dashed
+# separator — it renders before the PTY size is settled and misplaces the
+# cursor on the first prompt.
+if [[ -n "$NVIM" ]]; then
+  PS1="${FG[032]}%~\$(git_prompt_info)\$(hg_prompt_info) ${FG[105]}%(!.#.»)%{$reset_color%} "
+fi
+
 # User configuration
 
 # export MANPATH="/usr/local/man:$MANPATH"
