@@ -1,4 +1,3 @@
 return {
-  "tpope/vim-rails",
-  ft = { "ruby", "eruby" },
+  { "tpope/vim-rails", enabled = false },
 }

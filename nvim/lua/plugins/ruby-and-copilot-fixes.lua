@@ -11,6 +11,15 @@ return {
         },
         copilot = { enabled = false },
         copilot_ls = { enabled = false },
+        ruby_lsp = {
+          init_options = {
+            addonSettings = {
+              ["Ruby LSP Rails"] = {
+                enablePendingMigrationsPrompt = false,
+              },
+            },
+          },
+        },
       },
     },
   },
