@@ -12,6 +12,7 @@ return {
         copilot = { enabled = false },
         copilot_ls = { enabled = false },
         ruby_lsp = {
+          mason = false,
           init_options = {
             addonSettings = {
               ["Ruby LSP Rails"] = {
