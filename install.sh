@@ -136,6 +136,33 @@ fi
 vim +PluginInstall +qall >/dev/null 2>&1 || true
 
 # ---------------------------------------------------------------------------
+# 5. Personal repos: crit-vim + pair (clone + install)
+# ---------------------------------------------------------------------------
+WS="$HOME/workspace"
+export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
+
+clone_or_update() {  # clone_or_update <name> <git-url>
+  local dir="$WS/$1"
+  if [ -d "$dir/.git" ]; then
+    log "Updating $1"; git -C "$dir" pull --ff-only || warn "could not fast-forward $1"
+  else
+    log "Cloning $1"; git clone "$2" "$dir"
+  fi
+}
+
+clone_or_update crit-vim git@github.com:ssemakov/crit-vim.git
+clone_or_update pair     git@github.com:ssemakov/pair.git
+
+log "Installing crit-vim (CLI + Claude Code skill; nvim plugin spec is symlinked above)"
+ln -sfn "$WS/crit-vim/bin/crit-vim" "$HOME/bin/crit-vim"
+mkdir -p "$HOME/.claude/skills"
+ln -sfn "$WS/crit-vim/integrations/claude-code/skills/crit-vim" "$HOME/.claude/skills/crit-vim"
+
+log "Installing pair (Go via asdf, then make install -> ~/bin/pair)"
+asdf plugin add golang https://github.com/asdf-community/asdf-golang.git 2>/dev/null || true
+( cd "$WS/pair" && asdf install golang && make install )
+
+# ---------------------------------------------------------------------------
 log "Done."
 echo
 echo "Next steps (manual, machine-specific):"
