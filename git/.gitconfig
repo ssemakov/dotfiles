@@ -60,10 +60,13 @@
 [apply]
 	whitespace = fix
 [credential]
-	helper = manager-core
+	helper = osxkeychain
 [rerere]
 	enabled = true
 [credential "https://dev.azure.com"]
 	useHttpPath = true
 [init]
 	defaultBranch = main
+[user]
+	email = ssemakov@wistia.com
+	name = Simon Semakov
