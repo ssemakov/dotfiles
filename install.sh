@@ -68,6 +68,9 @@ fi
 # ---------------------------------------------------------------------------
 log "Symlinking dotfiles"
 
+# ~/bin — on PATH via .zshrc; targets of `make install` etc.
+mkdir -p "$HOME/bin"
+
 # oh-my-zsh custom dir: replace OMZ's default with ours (themes + aliases)
 if [ -L "$HOME/.oh-my-zsh/custom" ]; then
   rm "$HOME/.oh-my-zsh/custom"

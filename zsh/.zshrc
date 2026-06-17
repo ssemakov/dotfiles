@@ -168,11 +168,13 @@ export HISTSIZE=100000                   # big big history
 export HISTFILESIZE=100000               # big big history
 export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
 
-# asdf — pick whichever install location is present (Homebrew or $HOME)
+# asdf — legacy asdf.sh (<0.16) if present, else shims dir on PATH (>=0.16)
 if [ -f "/opt/homebrew/opt/asdf/libexec/asdf.sh" ]; then
   . "/opt/homebrew/opt/asdf/libexec/asdf.sh"
 elif [ -f "$HOME/.asdf/asdf.sh" ]; then
   . "$HOME/.asdf/asdf.sh"
+elif command -v asdf >/dev/null 2>&1; then
+  export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
 fi
 
 export NVM_DIR="$HOME/.nvm"
