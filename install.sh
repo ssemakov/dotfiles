@@ -42,7 +42,7 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 
 log "Installing core formulae"
 brew install \
-  tmux neovim asdf gh gnupg pinentry-mac difftastic git-lfs
+  tmux neovim asdf gh gnupg pinentry-mac difftastic git-lfs deno
 
 log "Installing agent-safehouse (sandbox wrapper used by .zshrc)"
 brew install eugene1g/safehouse/agent-safehouse
@@ -118,6 +118,17 @@ if [ -e "$HOME/.codex/config.toml" ]; then
 else
   cp "$DOT/codex/config.toml.template" "$HOME/.codex/config.toml"
   printf '   copied codex/config.toml.template -> ~/.codex/config.toml\n'
+fi
+
+# claude: COPY, never symlink (claude writes machine-specific state back, e.g.
+# plugin install paths, theme toggles). Template carries only portable prefs +
+# declarative enabledPlugins/extraKnownMarketplaces so plugins reinstall on use.
+mkdir -p "$HOME/.claude"
+if [ -e "$HOME/.claude/settings.json" ]; then
+  warn "~/.claude/settings.json exists, leaving as-is"
+else
+  cp "$DOT/claude/settings.json.template" "$HOME/.claude/settings.json"
+  printf '   copied claude/settings.json.template -> ~/.claude/settings.json\n'
 fi
 
 # ---------------------------------------------------------------------------

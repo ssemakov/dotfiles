@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "defaultMode": "auto"
+  },
+  "enabledPlugins": {
+    "claude-code-wakatime@wakatime": true,
+    "ponytail@ponytail": true,
+    "ruby-lsp@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "wakatime": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/wakatime/claude-code-wakatime.git"
+      }
+    },
+    "ponytail": {
+      "source": {
+        "source": "github",
+        "repo": "DietrichGebert/ponytail"
+      }
+    }
+  },
+  "language": "be concise and brief",
+  "autoUpdatesChannel": "stable",
+  "theme": "auto",
+  "editorMode": "vim",
+  "remoteControlAtStartup": true,
+  "inputNeededNotifEnabled": false,
+  "agentPushNotifEnabled": true
+}
