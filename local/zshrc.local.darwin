@@ -1,0 +1,7 @@
+# macOS-specific zsh config.
+# Copied to ~/.zshrc.local by install.sh (only if absent), sourced at the end
+# of the committed .zshrc. Put machine/OS-specific bits here, not in .zshrc.
+
+# Homebrew keg-only tools
+export PATH="/opt/homebrew/opt/mysql@8.4/bin:$PATH"
+export PATH="/opt/homebrew/opt/haproxy@2.8/bin:$PATH"

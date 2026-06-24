@@ -92,7 +92,10 @@ function git_branch_local_ls() {
   fi
 }
 
-# Safehousse sandbox for AI agents
+# Safehouse sandbox for AI agents (macOS only). Where `safehouse` is absent
+# (e.g. Linux dev boxes), the wrappers below are not defined, so `claude`,
+# `codex`, etc. fall through to the real binaries unsandboxed.
+if command -v safehouse >/dev/null 2>&1; then
 
 safe() {
   local -a safehouse_args cmd_args
@@ -137,6 +140,8 @@ claude()   { safe claude "$@"; }
 codex()    { safe codex "$@"; }
 amp()      { safe amp  "$@"; }
 gemini()   { NO_BROWSER=true safe gemini "$@"; }
+
+fi  # command -v safehouse
 
 
 # Set personal aliases, overriding those provided by oh-my-zsh libs,
@@ -191,7 +196,6 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 AWS_SESSION_TOKEN_TTL=10h
-export PATH="/opt/homebrew/opt/mysql@8.4/bin:$PATH"
 
 export WASMTIME_HOME="$HOME/.wasmtime"
 
@@ -202,9 +206,15 @@ if [ -f "$HOME/Downloads/google-cloud-sdk/path.zsh.inc" ]; then . "$HOME/Downloa
 
 # The next line enables shell command completion for gcloud.
 if [ -f "$HOME/Downloads/google-cloud-sdk/completion.zsh.inc" ]; then . "$HOME/Downloads/google-cloud-sdk/completion.zsh.inc"; fi
-export PATH="/opt/homebrew/opt/haproxy@2.8/bin:$PATH"
 
 # Ghostty CLI (the `ghostty` binary lives inside the .app bundle)
 if [ -d "/Applications/Ghostty.app/Contents/MacOS" ]; then
   export PATH="/Applications/Ghostty.app/Contents/MacOS:$PATH"
 fi
+
+# devbox-cli
+export PATH="$HOME/.devbox-cli/bin:$PATH"
+
+# Per-host / per-OS overrides (created by install.sh from local/zshrc.local.<os>).
+# Keep machine-specific config here so the committed .zshrc stays portable.
+[ -f "$HOME/.zshrc.local" ] && . "$HOME/.zshrc.local"

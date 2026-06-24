@@ -61,11 +61,6 @@ export GOPATH="$HOME/workspace/go"
 export PATH=$PATH:$HOME/.rvm/bin:$HOME/workspace/go/bin:$HOME/Library/Python/2.7/bin:$HOME/.rvm/rubies/ruby-2.2.4/bin
 export PATH="/usr/local/sbin:$PATH"
 
-# enable docker environment
-eval "$(docker-machine env)"
-
-# enable gpg-agent
-eval $(gpg-agent --daemon)
 GPG_TTY=$(tty)
 export GPG_TTY
 if [ -f "${HOME}/.gpg-agent-info" ]; then
@@ -77,3 +72,6 @@ fi
 if [[ -n "$SSH_CONNECTION" ]] ;then
 	export PINENTRY_USER_DATA="USE_CURSES=1"
 fi
+
+# devbox-cli
+export PATH="$HOME/.devbox-cli/bin:$PATH"

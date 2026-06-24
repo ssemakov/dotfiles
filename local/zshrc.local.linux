@@ -1,0 +1,7 @@
+# Linux-specific zsh config.
+# Copied to ~/.zshrc.local by install.sh (only if absent), sourced at the end
+# of the committed .zshrc. Put machine/OS-specific bits here, not in .zshrc.
+
+# On hosts that provide a system shell rc (e.g. cloud dev boxes that set up
+# PATH/asdf/WISTIA_HOME/oh-my-zsh in /etc), pull it in. No-op elsewhere.
+[ -f /etc/cloud-dev-box-zshrc ] && . /etc/cloud-dev-box-zshrc

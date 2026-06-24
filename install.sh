@@ -32,26 +32,80 @@ link() {
 }
 
 # ---------------------------------------------------------------------------
-# 1. Homebrew + core packages
+# 0. OS detection — this repo bootstraps both macOS laptops and Ubuntu devboxes
+#    (the devbox AMI's /opt/bin/setup-dotfiles clones this repo and runs
+#    install.sh as the ubuntu user at cloud-init: no Homebrew, no SSH agent).
 # ---------------------------------------------------------------------------
-if ! command -v brew >/dev/null 2>&1; then
-  log "Installing Homebrew"
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+OS="$(uname -s)"
+
+# ---------------------------------------------------------------------------
+# 1. Packages
+# ---------------------------------------------------------------------------
+if [ "$OS" = "Darwin" ]; then
+  if ! command -v brew >/dev/null 2>&1; then
+    log "Installing Homebrew"
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  fi
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+
+  log "Installing core formulae"
+  brew install \
+    tmux neovim asdf gh gnupg pinentry-mac difftastic git-lfs deno ripgrep
+
+  log "Installing agent-safehouse (sandbox wrapper used by .zshrc)"
+  brew install eugene1g/safehouse/agent-safehouse
+
+  # Optional / work tools — uncomment as needed:
+  # brew install mysql@8.4 haproxy@2.8
+  # brew install nvm
+
+  git lfs install
+else
+  # Linux (Ubuntu devbox). No Homebrew. Use apt + the official neovim release.
+  # Everything here is non-fatal so a transient failure never blocks the
+  # symlink step below (which is what actually puts nvim/ at ~/.config/nvim).
+  if sudo -n true 2>/dev/null; then
+    log "Installing core apt packages"
+    sudo apt-get update -y || warn "apt-get update failed (non-fatal)"
+    sudo apt-get install -y \
+      git curl ca-certificates tmux zsh gnupg git-lfs ripgrep build-essential \
+      || warn "some apt packages failed (non-fatal)"
+    git lfs install || warn "git lfs install failed (non-fatal)"
+  else
+    warn "no passwordless sudo — skipping apt packages (install git/tmux/zsh manually)"
+  fi
+
+  # neovim: apt's build is too old for LazyVim — install the official release.
+  if ! command -v nvim >/dev/null 2>&1; then
+    case "$(uname -m)" in
+      x86_64)        NVIM_ASSET=nvim-linux-x86_64 ;;
+      aarch64|arm64) NVIM_ASSET=nvim-linux-arm64 ;;
+      *)             NVIM_ASSET="" ;;
+    esac
+    if [ -n "$NVIM_ASSET" ]; then
+      log "Installing neovim ($NVIM_ASSET) from official release"
+      tmp="$(mktemp -d)"
+      if curl -fL "https://github.com/neovim/neovim/releases/latest/download/${NVIM_ASSET}.tar.gz" \
+           -o "$tmp/nvim.tar.gz"; then
+        if sudo -n true 2>/dev/null; then
+          sudo rm -rf "/opt/${NVIM_ASSET}"
+          sudo tar -C /opt -xzf "$tmp/nvim.tar.gz"
+          sudo ln -sf "/opt/${NVIM_ASSET}/bin/nvim" /usr/local/bin/nvim
+        else
+          rm -rf "$HOME/.local/${NVIM_ASSET}"; mkdir -p "$HOME/.local" "$HOME/.local/bin"
+          tar -C "$HOME/.local" -xzf "$tmp/nvim.tar.gz"
+          ln -sf "$HOME/.local/${NVIM_ASSET}/bin/nvim" "$HOME/.local/bin/nvim"
+          warn "no sudo — installed nvim to ~/.local/bin (ensure it's on PATH)"
+        fi
+      else
+        warn "could not download neovim (non-fatal)"
+      fi
+      rm -rf "$tmp"
+    else
+      warn "unknown arch $(uname -m) — skipping neovim install"
+    fi
+  fi
 fi
-eval "$(/opt/homebrew/bin/brew shellenv)"
-
-log "Installing core formulae"
-brew install \
-  tmux neovim asdf gh gnupg pinentry-mac difftastic git-lfs deno
-
-log "Installing agent-safehouse (sandbox wrapper used by .zshrc)"
-brew install eugene1g/safehouse/agent-safehouse
-
-# Optional / work tools — uncomment as needed:
-# brew install mysql@8.4 haproxy@2.8
-# brew install nvm
-
-git lfs install
 
 # ---------------------------------------------------------------------------
 # 2. oh-my-zsh (framework only; our .zshrc + custom/ replace its defaults)
@@ -99,17 +153,32 @@ link pry/.pryrc           "$HOME/.pryrc"
 link rubocop/.rubocop.yml "$HOME/.rubocop.yml"
 link asdf/.default-gems   "$HOME/.default-gems"
 
-# XDG configs
-link nvim                                "$HOME/.config/nvim"
-link ghostty/config                      "$HOME/.config/ghostty/config"
-link gh/config.yml                       "$HOME/.config/gh/config.yml"
-link agent-safehouse/local-overrides.sb  "$HOME/.config/agent-safehouse/local-overrides.sb"
-link powerline/config_files              "$HOME/.config/powerline"
+# XDG configs (cross-platform)
+link nvim                   "$HOME/.config/nvim"
+link gh/config.yml          "$HOME/.config/gh/config.yml"
+link powerline/config_files "$HOME/.config/powerline"
 
-# gpg (dir must be 700)
-mkdir -p "$HOME/.gnupg"; chmod 700 "$HOME/.gnupg"
-link gpg/.gnupg/gpg.conf       "$HOME/.gnupg/gpg.conf"
-link gpg/.gnupg/gpg-agent.conf "$HOME/.gnupg/gpg-agent.conf"
+# macOS-only: ghostty (mac terminal), agent-safehouse (mac sandbox), and gpg
+# (config points at pinentry-mac). Skipped on Linux.
+if [ "$OS" = "Darwin" ]; then
+  link ghostty/config                      "$HOME/.config/ghostty/config"
+  link agent-safehouse/local-overrides.sb  "$HOME/.config/agent-safehouse/local-overrides.sb"
+
+  # gpg (dir must be 700)
+  mkdir -p "$HOME/.gnupg"; chmod 700 "$HOME/.gnupg"
+  link gpg/.gnupg/gpg.conf       "$HOME/.gnupg/gpg.conf"
+  link gpg/.gnupg/gpg-agent.conf "$HOME/.gnupg/gpg-agent.conf"
+fi
+
+# Per-OS shell-local file: COPIED (not symlinked) so each machine can diverge.
+# .zshrc sources ~/.zshrc.local at the end. Never overwrite an existing one.
+case "$OS" in Darwin) loc=darwin ;; *) loc=linux ;; esac
+if [ -e "$HOME/.zshrc.local" ]; then
+  warn "~/.zshrc.local exists, leaving as-is"
+elif [ -f "$DOT/local/zshrc.local.$loc" ]; then
+  cp "$DOT/local/zshrc.local.$loc" "$HOME/.zshrc.local"
+  printf '   copied local/zshrc.local.%s -> ~/.zshrc.local\n' "$loc"
+fi
 
 # codex: COPY, never symlink (codex writes machine-specific state back to it)
 mkdir -p "$HOME/.codex"
@@ -135,16 +204,20 @@ fi
 # 4. tmux plugins (TPM) + vim plugins (Vundle)
 # ---------------------------------------------------------------------------
 log "Installing tmux plugins (TPM)"
-bash "$DOT/tmux/install-plugins.sh"
+bash "$DOT/tmux/install-plugins.sh" || warn "tmux plugin install failed (non-fatal)"
 
-log "Installing vim plugins (Vundle)"
-VUNDLE="$HOME/.vim/bundle/Vundle.vim"
-if [ -d "$VUNDLE/.git" ]; then
-  git -C "$VUNDLE" pull --ff-only
-else
-  git clone https://github.com/VundleVim/Vundle.vim.git "$VUNDLE"
+# Legacy vim/Vundle — nvim (LazyVim) installs its own plugins on first launch,
+# so this is best-effort and skipped entirely when vim isn't present.
+if command -v vim >/dev/null 2>&1; then
+  log "Installing vim plugins (Vundle)"
+  VUNDLE="$HOME/.vim/bundle/Vundle.vim"
+  if [ -d "$VUNDLE/.git" ]; then
+    git -C "$VUNDLE" pull --ff-only || warn "could not update Vundle (non-fatal)"
+  else
+    git clone https://github.com/VundleVim/Vundle.vim.git "$VUNDLE" || warn "could not clone Vundle (non-fatal)"
+  fi
+  vim +PluginInstall +qall >/dev/null 2>&1 || true
 fi
-vim +PluginInstall +qall >/dev/null 2>&1 || true
 
 # ---------------------------------------------------------------------------
 # 5. Personal repos: crit-vim + pair (clone + install)
@@ -152,26 +225,35 @@ vim +PluginInstall +qall >/dev/null 2>&1 || true
 WS="$HOME/workspace"
 export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
 
+# These are SSH clones; at devbox cloud-init there is no SSH agent, so they may
+# fail — that's fine, they're optional. Re-run install.sh after SSHing in (agent
+# forwarded) to finish them. Nothing here may abort the script.
 clone_or_update() {  # clone_or_update <name> <git-url>
   local dir="$WS/$1"
   if [ -d "$dir/.git" ]; then
     log "Updating $1"; git -C "$dir" pull --ff-only || warn "could not fast-forward $1"
   else
-    log "Cloning $1"; git clone "$2" "$dir"
+    log "Cloning $1"; git clone "$2" "$dir" || warn "could not clone $1 (no SSH agent? skipped)"
   fi
 }
 
 clone_or_update crit-vim git@github.com:ssemakov/crit-vim.git
 clone_or_update pair     git@github.com:ssemakov/pair.git
 
-log "Installing crit-vim (CLI + Claude Code skill; nvim plugin spec is symlinked above)"
-ln -sfn "$WS/crit-vim/bin/crit-vim" "$HOME/bin/crit-vim"
-mkdir -p "$HOME/.claude/skills"
-ln -sfn "$WS/crit-vim/integrations/claude-code/skills/crit-vim" "$HOME/.claude/skills/crit-vim"
+if [ -d "$WS/crit-vim" ]; then
+  log "Installing crit-vim (CLI + Claude Code skill; nvim plugin spec is symlinked above)"
+  ln -sfn "$WS/crit-vim/bin/crit-vim" "$HOME/bin/crit-vim"
+  mkdir -p "$HOME/.claude/skills"
+  ln -sfn "$WS/crit-vim/integrations/claude-code/skills/crit-vim" "$HOME/.claude/skills/crit-vim"
+fi
 
-log "Installing pair (Go via asdf, then make install -> ~/bin/pair)"
-asdf plugin add golang https://github.com/asdf-community/asdf-golang.git 2>/dev/null || true
-( cd "$WS/pair" && asdf install golang && make install )
+if [ -d "$WS/pair" ] && command -v asdf >/dev/null 2>&1; then
+  log "Installing pair (Go via asdf, then make install -> ~/bin/pair)"
+  asdf plugin add golang https://github.com/asdf-community/asdf-golang.git 2>/dev/null || true
+  ( cd "$WS/pair" && asdf install golang && make install ) || warn "pair build failed (skipped)"
+elif [ -d "$WS/pair" ]; then
+  warn "asdf not found — skipping pair build"
+fi
 
 # ---------------------------------------------------------------------------
 log "Done."

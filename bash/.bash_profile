@@ -57,3 +57,6 @@ export POSTGRES_USER=ssemakov
 
 test -e "${HOME}/.iterm2_shell_integration.bash" && source "${HOME}/.iterm2_shell_integration.bash"
 export PATH="/usr/local/sbin:$PATH"
+
+# devbox-cli
+export PATH="$HOME/.devbox-cli/bin:$PATH"
