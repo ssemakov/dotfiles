@@ -162,6 +162,16 @@ bindkey '^P' up-history
 bindkey '^N' down-history
 bindkey '^R' history-incremental-search-backward
 
+# cd-from-line: turn the current line (a pipeline ending in a single path on
+# stdout) into `cd "$(...)"` and run it — append-only, no jumping to the front.
+# e.g. `git worktree list | grep feat | sed 's/[[:space:]].*//'` then ^G.
+# Single key (not a chord, not Esc-c): no stray ^D to close the tmux pane, and
+# vi-mode's Esc latency stays untouched. ^G's default `list-expand` is rarely used.
+cd-from-line() { BUFFER="cd \"\$($BUFFER)\""; zle accept-line; }
+zle -N cd-from-line
+bindkey -M viins '^G' cd-from-line
+bindkey -M vicmd '^G' cd-from-line
+
 export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
 export HISTCONTROL=ignoredups:erasedups  # no duplicate entries
 export HISTSIZE=100000                   # big big history
