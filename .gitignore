@@ -1,2 +1,5 @@
 .claude
 nvim/lazy-lock.json
+
+# Machine-specific zsh config (aliases, env, etc.)
+*.local.zsh
