@@ -4,6 +4,18 @@ return {
     opts = {
       inlay_hints = { enabled = false },
       servers = {
+        -- Bump tsserver heap: the wistia monorepo OOMs at vtsls's default
+        -- 3072 MB, and V8's heap-limit abort() shows up as repeated SIGABRT
+        -- crashes ("JS/TS language service crashed 5 times").
+        vtsls = {
+          settings = {
+            typescript = {
+              tsserver = {
+                maxTsServerMemory = 8192,
+              },
+            },
+          },
+        },
         gopls = {
           on_init = function(client)
             vim.lsp.semantic_tokens.enable(false, { client_id = client.id })
