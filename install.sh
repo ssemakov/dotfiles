@@ -125,14 +125,13 @@ log "Symlinking dotfiles"
 # ~/bin — on PATH via .zshrc; targets of `make install` etc.
 mkdir -p "$HOME/bin"
 
-# oh-my-zsh custom dir: replace OMZ's default with ours (themes + aliases)
+# oh-my-zsh custom dir: pointed at our repo via $ZSH_CUSTOM in .zshrc, NOT a
+# symlink — symlinking $ZSH/custom breaks `omz update`'s git autostash. Remove
+# any stale symlink left by older installs so OMZ's tracked custom/ is restored.
 if [ -L "$HOME/.oh-my-zsh/custom" ]; then
   rm "$HOME/.oh-my-zsh/custom"
-elif [ -e "$HOME/.oh-my-zsh/custom" ]; then
-  mkdir -p "$BACKUP"; mv "$HOME/.oh-my-zsh/custom" "$BACKUP/oh-my-zsh-custom"
+  git -C "$HOME/.oh-my-zsh" checkout -- custom 2>/dev/null || true
 fi
-ln -s "$DOT/zsh/.oh-my-zsh/custom" "$HOME/.oh-my-zsh/custom"
-printf '   %s -> %s\n' "$HOME/.oh-my-zsh/custom" "$DOT/zsh/.oh-my-zsh/custom"
 
 # zsh / bash
 link zsh/.zshrc          "$HOME/.zshrc"
