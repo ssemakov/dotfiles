@@ -55,6 +55,22 @@ if [ "$OS" = "Darwin" ]; then
   log "Installing agent-safehouse (sandbox wrapper used by .zshrc)"
   brew install eugene1g/safehouse/agent-safehouse
 
+  # GitButler — the cask ships the desktop app and symlinks the `but` CLI onto
+  # PATH (https://gitbutler.com/cli). Linux devboxes are headless, so it's
+  # macOS-only here; install the AppImage manually if you ever need it there.
+  if ! command -v but >/dev/null 2>&1; then
+    log "Installing GitButler (provides the 'but' CLI)"
+    brew install --cask gitbutler || warn "gitbutler cask install failed (non-fatal)"
+  fi
+
+  # GitButler's Claude Code skill (the `but agent setup` wizard is interactive;
+  # `but skill install --path` does the skill-files part non-interactively).
+  if command -v but >/dev/null 2>&1; then
+    log "Installing GitButler Claude Code skill"
+    but skill install --path "$HOME/.claude/skills/gitbutler" \
+      || warn "gitbutler skill install failed (non-fatal)"
+  fi
+
   # Optional / work tools — uncomment as needed:
   # brew install mysql@8.4 haproxy@2.8
   # brew install nvm
