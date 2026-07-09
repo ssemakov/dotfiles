@@ -13,7 +13,7 @@ return {
         -- bump contrast on common UI elements
         hl.LineNr = { fg = c.fg_dark }
         hl.CursorLineNr = { fg = c.orange, bold = true }
-        hl.Comment = { fg = c.comment, italic = true }
+        hl.Comment = { fg = c.blue1, italic = true }
         hl.Visual = { bg = c.bg_visual, bold = true }
       end,
     },
