@@ -17,9 +17,10 @@ personality = "pragmatic"
 [plugins."github@openai-curated"]
 enabled = true
 
+[tui]
+vim_mode_default = true
+
 # Vim-like navigation in non-text contexts.
-# Editor/composer left as-is — modal editing without a mode toggle would
-# break typing j/k/etc. as letters.
 
 [tui.keymap.pager]
 scroll_down = "j"
