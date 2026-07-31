@@ -121,6 +121,34 @@ else
       warn "unknown arch $(uname -m) — skipping neovim install"
     fi
   fi
+
+  # difftastic: `git df` (difftool) shells out to `difft`. Not in apt on older
+  # Ubuntu, so grab the release binary — same pattern as neovim above.
+  if ! command -v difft >/dev/null 2>&1; then
+    case "$(uname -m)" in
+      x86_64)        DIFFT_ASSET=difft-x86_64-unknown-linux-gnu ;;
+      aarch64|arm64) DIFFT_ASSET=difft-aarch64-unknown-linux-gnu ;;
+      *)             DIFFT_ASSET="" ;;
+    esac
+    if [ -n "$DIFFT_ASSET" ]; then
+      log "Installing difftastic ($DIFFT_ASSET) from official release"
+      tmp="$(mktemp -d)"
+      if curl -fL "https://github.com/Wilfred/difftastic/releases/latest/download/${DIFFT_ASSET}.tar.gz" \
+           -o "$tmp/difft.tar.gz" && tar -C "$tmp" -xzf "$tmp/difft.tar.gz"; then
+        if sudo -n true 2>/dev/null; then
+          sudo install -m 0755 "$tmp/difft" /usr/local/bin/difft
+        else
+          mkdir -p "$HOME/.local/bin"; install -m 0755 "$tmp/difft" "$HOME/.local/bin/difft"
+          warn "no sudo — installed difft to ~/.local/bin (ensure it's on PATH)"
+        fi
+      else
+        warn "could not download difftastic (non-fatal) — 'git df' will fail until installed"
+      fi
+      rm -rf "$tmp"
+    else
+      warn "unknown arch $(uname -m) — skipping difftastic install"
+    fi
+  fi
 fi
 
 # ---------------------------------------------------------------------------
