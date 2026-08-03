@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# trestore [-t :N] — apply a STORED layout to the CURRENT window.
+#   -t :N   pull the layout stored under index N (graft it onto wherever you are)
+#   (none)  pull the layout stored for the current window's own index
+# The layout is always applied to the current window.
+set -eo pipefail
+
+base="${XDG_DATA_HOME:-$HOME/.local/share}/tmux-layouts"
+
+session=$(tmux display-message -p '#{session_name}')
+if [ "${1:-}" = "-t" ]; then
+  index=${2#:}          # accept ':N' or 'N'
+else
+  index=$(tmux display-message -p '#{window_index}')
+fi
+
+file="$base/$session/$index"
+[ -f "$file" ] || { echo "trestore: no saved layout for $session:$index" >&2; exit 1; }
+
+# No -t on select-layout: applies to the current window. Fails on a pane-count
+# mismatch (it reshapes existing panes, won't spawn them) — let tmux say so.
+tmux select-layout "$(cat "$file")"
