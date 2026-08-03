@@ -21,20 +21,23 @@ alias gbck='git checkout HEAD~1'
 # review 1234        - review a PR
 # create simon/foo   - feature work: new branch off fresh origin/main, or existing branch
 # review/create close - close current window; worktree is removed if clean, kept if dirty.
-# Layout: left 2/3 nvim | right 1/3 column = pair claude / pair codex / clear.
+# Layout: left 3/5 nvim | right 2/5 column = pair claude 4/9 / pair codex 4/9 / clear 1/9.
 
 # Panes by id so send-keys never hits the wrong one (active pane moves per split).
 _wt_layout() {
     local name="$1" wt="$2"
     local left right mid bot
     left=$(tmux new-window -P -F '#{pane_id}' -n "$name" -c "$wt")
-    right=$(tmux split-window -h -l 33% -P -F '#{pane_id}' -t "$left" -c "$wt")
-    mid=$(tmux split-window -v -l 66% -P -F '#{pane_id}' -t "$right" -c "$wt")
-    bot=$(tmux split-window -v -l 50% -P -F '#{pane_id}' -t "$mid" -c "$wt")
+    # Right column 2/5 wide; heights: claude 4/9, codex 4/9, free terminal 1/9.
+    # -l sizes the NEW pane: 56% ~ 5/9 of the column, then 20% = 1/5 of that 5/9.
+    right=$(tmux split-window -h -l 40% -P -F '#{pane_id}' -t "$left" -c "$wt")
+    mid=$(tmux split-window -v -l 56% -P -F '#{pane_id}' -t "$right" -c "$wt")
+    bot=$(tmux split-window -v -l 20% -P -F '#{pane_id}' -t "$mid" -c "$wt")
 
     tmux send-keys -t "$left"  'nvim' Enter
-    tmux send-keys -t "$right" 'pair claude' Enter
-    tmux send-keys -t "$mid"   'pair codex' Enter
+    # Resume the branch's most recent session when one exists, else start fresh.
+    tmux send-keys -t "$right" 'pair last claude || pair claude' Enter
+    tmux send-keys -t "$mid"   'pair last codex || pair codex' Enter
     # bot stays clear.
     tmux select-pane -t "$left"
 }
@@ -90,6 +93,15 @@ _wt_sweep() {
                 && echo "pruned $wt ($st PR)" ;;
         esac
     done
+}
+
+# work: the same tmux layout in the current directory/branch; does not create
+# or manage worktrees.
+work() {
+    [ -n "$TMUX" ] || { echo "work: run inside tmux"; return 1; }
+    local name
+    name=$(git branch --show-current 2>/dev/null)
+    _wt_layout "${name:-${PWD:t}}" "$PWD"
 }
 
 review() {
