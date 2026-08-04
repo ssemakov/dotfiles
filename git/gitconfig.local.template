@@ -1,0 +1,5 @@
+# Machine-local git identity. Copied to ~/.gitconfig.local by install.sh
+# (never overwritten). Not tracked — put your real email/name here.
+[user]
+	email = you@example.com
+	name = Your Name

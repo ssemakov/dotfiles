@@ -189,6 +189,15 @@ link git/.gitconfig           "$HOME/.gitconfig"
 link git/.gitignore_global    "$HOME/.gitignore_global"
 link git/.git-completion.bash "$HOME/.git-completion.bash"
 
+# git identity: COPIED (not symlinked), never overwritten. Keeps email out of
+# the repo. .gitconfig [include]s ~/.gitconfig.local. Edit it with your details.
+if [ -e "$HOME/.gitconfig.local" ]; then
+  warn "~/.gitconfig.local exists, leaving as-is"
+else
+  cp "$DOT/git/gitconfig.local.template" "$HOME/.gitconfig.local"
+  printf '   copied git/gitconfig.local.template -> ~/.gitconfig.local (edit your identity)\n'
+fi
+
 # editors / shells / lint tools
 link tmux/.tmux.conf      "$HOME/.tmux.conf"
 link vim/.vimrc           "$HOME/.vimrc"
