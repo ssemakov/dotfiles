@@ -219,6 +219,15 @@ fi
 # devbox-cli
 export PATH="$HOME/.devbox-cli/bin:$PATH"
 
+# GITHUB_TOKEN for codereview.nvim, read from gh's stored login so no PAT
+# lands in a dotfile. gh prefers this env var over its keychain, so run
+# `GITHUB_TOKEN= gh auth login` / `... auth switch` when changing accounts.
+if command -v gh >/dev/null 2>&1; then
+  _gh_token="$(gh auth token 2>/dev/null)"
+  [ -n "$_gh_token" ] && export GITHUB_TOKEN="$_gh_token"
+  unset _gh_token
+fi
+
 # Per-host / per-OS overrides (created by install.sh from local/zshrc.local.<os>).
 # Keep machine-specific config here so the committed .zshrc stays portable.
 [ -f "$HOME/.zshrc.local" ] && . "$HOME/.zshrc.local"
