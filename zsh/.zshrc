@@ -231,3 +231,6 @@ fi
 # Per-host / per-OS overrides (created by install.sh from local/zshrc.local.<os>).
 # Keep machine-specific config here so the committed .zshrc stays portable.
 [ -f "$HOME/.zshrc.local" ] && . "$HOME/.zshrc.local"
+
+# opencode
+export PATH=/Users/simonsemakov/.opencode/bin:$PATH

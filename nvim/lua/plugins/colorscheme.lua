@@ -1,28 +1,32 @@
 return {
-  -- Tokyonight: use the darkest "night" variant, transparent so terminal bg shows through
   {
-    "folke/tokyonight.nvim",
+    "projekt0n/github-nvim-theme",
+    name = "github-theme",
+    main = "github-theme", -- lua module name differs from the repo name
     opts = {
-      style = "night",
-      transparent = true,
-      styles = {
-        sidebars = "transparent",
-        floats = "transparent",
+      options = {
+        transparent = true,
+        styles = { comments = "italic" },
       },
-      on_highlights = function(hl, c)
-        -- bump contrast on common UI elements
-        hl.LineNr = { fg = c.fg_dark }
-        hl.CursorLineNr = { fg = c.orange, bold = true }
-        hl.Comment = { fg = c.blue1, italic = true }
-        hl.Visual = { bg = c.bg_visual, bold = true }
-      end,
+      specs = {
+        -- Theme default blends diff colors at 15% over #0d1117, and uses a light
+        -- grey (fg.subtle) for DiffText. Dial the blend down; raise to taste.
+        all = {
+          diff = {
+            add = "#101f1b", -- 10% #2ea043
+            change = "#1e1c16", -- 10% #bb8009
+            delete = "#25171c", -- 10% #f85149
+            text = "#413213", -- 30% #bb8009 (was a bright grey)
+          },
+        },
+      },
     },
   },
   -- Tell LazyVim which colorscheme to use
   {
     "LazyVim/LazyVim",
     opts = {
-      colorscheme = "tokyonight-night",
+      colorscheme = "github_dark_default",
     },
   },
 }
