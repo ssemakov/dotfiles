@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+  # One-shot `wtdb watch` replacement: push this worktree's changes to the
+  # matching checkout on a devbox. The diff base is the devbox's HEAD, so it
+  # works whether the changes are committed, staged, or just saved.
+  #
+  # usage: wtpush [host] [remote-path]        defaults: s1 code/wistia
+  set -euo pipefail
+
+  host=${1:-s1}
+  dest=${2:-code/wistia}
+
+  cd "$(git rev-parse --show-toplevel)"
+  base=$(ssh "$host" "git -C '$dest' rev-parse HEAD")
+
+  current=$(mktemp) changed=$(mktemp) gone=$(mktemp)
+  trap 'rm -f "$current" "$changed" "$gone"' EXIT
+
+  { git diff --name-only "$base"; git ls-files -o --exclude-standard; } | sort -u >"$current"
+
+  # Replay last run's file list too, so files that stopped differing (reverted,
+  # deleted, committed upstream) get their current state pushed instead of
+  # leaving the previous copy stranded on the box.
+  prev="$(git rev-parse --git-dir)/wtpush-manifest"
+  { cat "$current"; cat "$prev" 2>/dev/null || true; } | sort -u |
+    while IFS= read -r f; do
+      if [ -e "$f" ]; then echo "$f" >>"$changed"; else echo "$f" >>"$gone"; fi
+    done
+
+  if [ -s "$gone" ]; then
+    ssh "$host" "cd '$dest' && xargs -d '\n' -r rm -f --" <"$gone"
+  fi
+  if [ -s "$changed" ]; then
+    rsync -a --files-from="$changed" ./ "$host:$dest/"
+  fi
+  cp "$current" "$prev"
+
+  echo "wtpush: $host:$dest @ ${base:0:8} — sent $(wc -l <"$changed" | tr -d ' '), deleted $(wc -l <"$gone" | tr -d ' ')"
