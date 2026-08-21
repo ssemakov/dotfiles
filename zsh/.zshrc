@@ -166,21 +166,6 @@ setopt INC_APPEND_HISTORY
 
 autoload -Uz compinit && compinit
 
-# vi-mode tweaks: shrink mode-switch lag and keep history search on ctrl-p/n/r
-export KEYTIMEOUT=40
-bindkey '^P' up-history
-bindkey '^N' down-history
-bindkey '^R' history-incremental-search-backward
-
-# cd-from-line: turn the current line (a pipeline ending in a single path on
-# stdout) into `cd "$(...)"` and run it — append-only, no jumping to the front.
-# Single key (not a chord, not Esc-c): no stray ^D to close the tmux pane, and
-# vi-mode's Esc latency stays untouched. ^G's default `list-expand` is rarely used.
-cd-from-line() { BUFFER="cd \"\$($BUFFER)\""; zle accept-line; }
-zle -N cd-from-line
-bindkey -M viins '^G' cd-from-line
-bindkey -M vicmd '^G' cd-from-line
-
 export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
 export HISTCONTROL=ignoredups:erasedups  # no duplicate entries
 export HISTSIZE=100000                   # big big history
@@ -234,3 +219,41 @@ fi
 
 # opencode
 export PATH=/Users/simonsemakov/.opencode/bin:$PATH
+
+# Keybindings last: some hosts' system rc (pulled in by ~/.zshrc.local above)
+# re-sources oh-my-zsh or runs `bindkey -e`, clobbering the vi-mode plugin and
+# leaving a plain emacs keymap. Re-assert vi keys here so nothing outranks them.
+bindkey -v
+# KEYTIMEOUT is in 10ms units; 1 makes Esc resolve immediately instead of the
+# default 400ms wait-for-an-escape-sequence.
+export KEYTIMEOUT=1
+bindkey '^P' up-history
+bindkey '^N' down-history
+bindkey '^R' history-incremental-search-backward
+
+# cd-from-line: turn the current line (a pipeline ending in a single path on
+# stdout) into `cd "$(...)"` and run it — append-only, no jumping to the front.
+# Single key (not a chord, not Esc-c): no stray ^D to close the tmux pane, and
+# vi-mode's Esc latency stays untouched. ^G's default `list-expand` is rarely used.
+cd-from-line() { BUFFER="cd \"\$($BUFFER)\""; zle accept-line; }
+zle -N cd-from-line
+bindkey -M viins '^G' cd-from-line
+bindkey -M vicmd '^G' cd-from-line
+
+# Cursor shape per vi mode (DECSCUSR): block in normal, underline in insert,
+# terminal default while a command runs. Hand-rolled rather than omz's
+# VI_MODE_SET_CURSOR, which must be set before oh-my-zsh loads and is dead in
+# shells whose plugin list dropped vi-mode. This block always runs.
+autoload -Uz add-zle-hook-widget
+vi-cursor-shape() {
+  case ${KEYMAP:-viins} in
+    vicmd) print -n '\e[2 q' ;;
+    *)     print -n '\e[4 q' ;;
+  esac
+}
+vi-cursor-reset() { print -n '\e[0 q'; }
+zle -N vi-cursor-shape
+zle -N vi-cursor-reset
+add-zle-hook-widget zle-keymap-select vi-cursor-shape
+add-zle-hook-widget zle-line-init     vi-cursor-shape
+add-zle-hook-widget zle-line-finish   vi-cursor-reset
