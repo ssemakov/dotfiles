@@ -230,6 +230,9 @@ export KEYTIMEOUT=1
 bindkey '^P' up-history
 bindkey '^N' down-history
 bindkey '^R' history-incremental-search-backward
+# vicmd's ^P/^N are already up-history/down-history, but its ^R is `redo`,
+# and prompts now start in vicmd (see start-in-vicmd below).
+bindkey -M vicmd '^R' history-incremental-search-backward
 
 # cd-from-line: turn the current line (a pipeline ending in a single path on
 # stdout) into `cd "$(...)"` and run it — append-only, no jumping to the front.
@@ -255,5 +258,11 @@ vi-cursor-reset() { print -n '\e[0 q'; }
 zle -N vi-cursor-shape
 zle -N vi-cursor-reset
 add-zle-hook-widget zle-keymap-select vi-cursor-shape
-add-zle-hook-widget zle-line-init     vi-cursor-shape
 add-zle-hook-widget zle-line-finish   vi-cursor-reset
+
+# Start every prompt in normal mode rather than insert. Registered on line-init
+# before vi-cursor-shape so the cursor is painted after the keymap has flipped.
+start-in-vicmd() { zle -K vicmd; }
+zle -N start-in-vicmd
+add-zle-hook-widget zle-line-init     start-in-vicmd
+add-zle-hook-widget zle-line-init     vi-cursor-shape
