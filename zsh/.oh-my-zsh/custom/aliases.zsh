@@ -25,7 +25,7 @@ alias gbck='git checkout HEAD~1'
 
 # Panes by id so send-keys never hits the wrong one (active pane moves per split).
 _wt_layout() {
-    local name="$1" wt="$2"
+    local name="$1" wt="$2" nvim_cmd="${3:-nvim}"
     local left right mid bot
     left=$(tmux new-window -P -F '#{pane_id}' -n "$name" -c "$wt")
     # Right column 2/5 wide; heights: claude 4/9, codex 4/9, free terminal 1/9.
@@ -34,10 +34,12 @@ _wt_layout() {
     mid=$(tmux split-window -v -l 56% -P -F '#{pane_id}' -t "$right" -c "$wt")
     bot=$(tmux split-window -v -l 20% -P -F '#{pane_id}' -t "$mid" -c "$wt")
 
-    tmux send-keys -t "$left"  'nvim' Enter
+    # Escape i: a pane's first prompt opens in vicmd, which eats typed text as commands.
+    # Leading space: HIST_IGNORE_SPACE (set in .zshrc) keeps these out of history.
+    tmux send-keys -t "$left"  Escape i " $nvim_cmd" Enter
     # Resume the branch's most recent session when one exists, else start fresh.
-    tmux send-keys -t "$right" 'pair last claude || pair claude' Enter
-    tmux send-keys -t "$mid"   'pair last codex || pair codex' Enter
+    tmux send-keys -t "$right" Escape i ' pair last claude || pair claude' Enter
+    tmux send-keys -t "$mid"   Escape i ' pair last codex || pair codex' Enter
     # bot stays clear.
     tmux select-pane -t "$left"
 }
@@ -113,19 +115,27 @@ review() {
     local repo
     repo=$(git rev-parse --show-toplevel 2>/dev/null) || { echo "review: not in a git repo"; return 1; }
     _wt_sweep "$repo"
+    # owner/name from origin, so gh looks the PR up in this repo.
+    local slug
+    slug=$(git -C "$repo" remote get-url origin | sed -E 's#\.git$##; s#.*[:/]([^/:]+/[^/]+)$#\1#')
     local branch
-    branch=$(gh pr view "$pr" --json headRefName -q .headRefName) || return 1
+    branch=$(gh pr view "$pr" -R "$slug" --json headRefName -q .headRefName) \
+        || { echo "review: no PR $pr in $slug (wrong repo dir, or an issue number?)"; return 1; }
     [ -n "$branch" ] || { echo "review: no branch for PR $pr"; return 1; }
     local wt="$repo/../worktrees/$branch"
 
-    # Create worktree if missing: local branch first, else track the remote PR branch.
-    git -C "$repo" fetch -q origin "$branch"
+    # refs/pull/<n>/head survives merge and branch deletion.
+    git -C "$repo" fetch -q origin "$branch" 2>/dev/null \
+        || git -C "$repo" fetch -q origin "pull/$pr/head" \
+        || { echo "review: fetch failed"; return 1; }
+    # Worktree if missing: local branch, else remote branch, else the fetched PR head.
     if [ ! -d "$wt" ]; then
         git -C "$repo" worktree add -q "$wt" "$branch" 2>/dev/null \
-            || git -C "$repo" worktree add -q --track -b "$branch" "$wt" "origin/$branch" \
+            || git -C "$repo" worktree add -q --track -b "$branch" "$wt" "origin/$branch" 2>/dev/null \
+            || git -C "$repo" worktree add -q -b "$branch" "$wt" FETCH_HEAD \
             || { echo "review: worktree add failed"; return 1; }
     fi
-    _wt_layout "review $pr" "$wt"
+    _wt_layout "review $pr" "$wt" "nvim '+CodeReviewPR $pr'"
 }
 
 create() {
