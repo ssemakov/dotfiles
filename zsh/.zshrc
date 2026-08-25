@@ -231,7 +231,7 @@ bindkey '^P' up-history
 bindkey '^N' down-history
 bindkey '^R' history-incremental-search-backward
 # vicmd's ^P/^N are already up-history/down-history, but its ^R is `redo`,
-# and prompts now start in vicmd (see start-in-vicmd below).
+# and a prompt can open in vicmd (see resume-vi-mode below).
 bindkey -M vicmd '^R' history-incremental-search-backward
 
 # cd-from-line: turn the current line (a pipeline ending in a single path on
@@ -260,9 +260,14 @@ zle -N vi-cursor-reset
 add-zle-hook-widget zle-keymap-select vi-cursor-shape
 add-zle-hook-widget zle-line-finish   vi-cursor-reset
 
-# Start every prompt in normal mode rather than insert. Registered on line-init
-# before vi-cursor-shape so the cursor is painted after the keymap has flipped.
-start-in-vicmd() { zle -K vicmd; }
-zle -N start-in-vicmd
-add-zle-hook-widget zle-line-init     start-in-vicmd
+# Resume each prompt in whichever vi mode the last one ended in. KEYMAP is
+# normalized to main/vicmd so a transient keymap (visual, isearch) can't be
+# restored into a bare prompt. First prompt of a shell starts in vicmd.
+save-vi-mode()   { [[ $KEYMAP == vicmd ]] && _vi_last_keymap=vicmd || _vi_last_keymap=main; }
+resume-vi-mode() { zle -K ${_vi_last_keymap:-vicmd}; }
+zle -N save-vi-mode
+zle -N resume-vi-mode
+add-zle-hook-widget zle-line-finish   save-vi-mode
+# Registered before vi-cursor-shape so the cursor is painted after the flip.
+add-zle-hook-widget zle-line-init     resume-vi-mode
 add-zle-hook-widget zle-line-init     vi-cursor-shape
