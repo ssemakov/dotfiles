@@ -167,10 +167,8 @@ setopt INC_APPEND_HISTORY
 autoload -Uz compinit && compinit
 
 export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
-export HISTCONTROL=ignoredups:erasedups  # no duplicate entries
-export HISTSIZE=100000                   # big big history
-export HISTFILESIZE=100000               # big big history
-export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
+export HISTSIZE=100000                   # entries kept in memory
+export SAVEHIST=$HISTSIZE                # entries kept in the file; omitting it caps at omz's 10000
 
 # asdf — legacy asdf.sh (<0.16) if present, else shims dir on PATH (>=0.16)
 if [ -f "/opt/homebrew/opt/asdf/libexec/asdf.sh" ]; then
