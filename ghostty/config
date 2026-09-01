@@ -7,3 +7,7 @@ theme = TokyoNight Night
 # Match iTerm-style true-black background so tmux colors pop
 # (set after `theme` so it overrides the theme's background)
 background = 000000
+
+# Cmd+Shift+I prompts for a tab name; a tab-level title outranks the
+# shell-integration title updates, so it sticks.
+keybind = cmd+shift+i=prompt_tab_title
