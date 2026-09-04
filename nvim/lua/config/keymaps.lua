@@ -14,3 +14,16 @@ vim.keymap.set("n", "<leader>fY", function()
   vim.fn.setreg("+", path)
   vim.notify(path, vim.log.levels.INFO, { title = "Copied relative path" })
 end, { desc = "Copy relative file path" })
+
+-- Toggle LSP for the current buffer. Diagnostics-off (<leader>ud) only hides output;
+-- this stops the servers, which is what reclaims CPU on big TS monorepos.
+vim.keymap.set("n", "<leader>uo", function()
+  local clients = vim.lsp.get_clients({ bufnr = 0 })
+  if #clients > 0 then
+    vim.lsp.stop_client(clients)
+    vim.notify("LSP off", vim.log.levels.WARN)
+  else
+    vim.cmd.edit() -- re-triggers FileType, servers re-attach
+    vim.notify("LSP on")
+  end
+end, { desc = "Toggle LSP (buffer)" })

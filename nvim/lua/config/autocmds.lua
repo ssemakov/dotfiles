@@ -58,3 +58,22 @@ vim.api.nvim_create_autocmd("LspAttach", {
     end
   end,
 })
+
+-- Cursorline reads as a position marker; while typing the cursor already marks it.
+local cursorline_group = vim.api.nvim_create_augroup("local_insert_cursorline", { clear = true })
+
+vim.api.nvim_create_autocmd("InsertEnter", {
+  group = cursorline_group,
+  callback = function()
+    vim.w.local_cursorline = vim.wo.cursorline
+    vim.wo.cursorline = false
+  end,
+})
+
+vim.api.nvim_create_autocmd("InsertLeave", {
+  group = cursorline_group,
+  callback = function()
+    -- restore rather than force on; some windows start with it off
+    vim.wo.cursorline = vim.w.local_cursorline ~= false
+  end,
+})
