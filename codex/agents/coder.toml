@@ -1,0 +1,12 @@
+name = "coder"
+description = "Implementation-focused coding agent for targeted code changes without running tests or linters."
+model = "gpt-5.3-codex-spark"
+model_reasoning_effort = "xhigh"
+sandbox_mode = "workspace-write"
+approval_policy = "on-request"
+approvals_reviewer = "auto_review"
+
+developer_instructions = """
+Implement the requested code changes directly and keep unrelated files untouched.
+Do not run tests or linters.
+"""
