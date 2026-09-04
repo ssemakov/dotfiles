@@ -241,6 +241,18 @@ else
   printf '   copied codex/config.toml.template -> ~/.codex/config.toml\n'
 fi
 
+# Codex role loading rejects symlinks, so custom agents must be regular files.
+mkdir -p "$HOME/.codex/agents"
+if [ -L "$HOME/.codex/agents/coder.toml" ]; then
+  rm "$HOME/.codex/agents/coder.toml"
+fi
+if [ -e "$HOME/.codex/agents/coder.toml" ]; then
+  warn "~/.codex/agents/coder.toml exists, leaving as-is"
+else
+  cp "$DOT/codex/agents/coder.toml" "$HOME/.codex/agents/coder.toml"
+  printf '   copied codex/agents/coder.toml -> ~/.codex/agents/coder.toml\n'
+fi
+
 # claude: COPY, never symlink (claude writes machine-specific state back, e.g.
 # plugin install paths, theme toggles). Template carries only portable prefs +
 # declarative enabledPlugins/extraKnownMarketplaces so plugins reinstall on use.
