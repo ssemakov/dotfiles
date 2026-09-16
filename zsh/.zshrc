@@ -107,8 +107,8 @@ safe() {
 }
 
 # Sandboxed — the default. Just type the command name.
-claude()   { safe claude "$@"; }
-codex()    { safe codex "$@"; }
+claude()   { safe --enable=clipboard claude "$@"; }
+codex()    { safe --enable=clipboard codex "$@"; }
 amp()      { safe amp  "$@"; }
 gemini()   { NO_BROWSER=true safe gemini "$@"; }
 

@@ -1,11 +1,5 @@
 #!/usr/bin/env bash
 
-# Run AI agent CLIs inside Safehouse on macOS. Fall through to the real
-# command on systems where Safehouse is not installed.
-if ! command -v safehouse >/dev/null 2>&1; then
-  exec "$@"
-fi
-
 safehouse_args=(--add-dirs-ro="$HOME/workspace")
 cmd_args=()
 
@@ -39,6 +33,28 @@ while (( $# )); do
     --add-dir=*)
       safehouse_args+=(--add-dirs-ro="${1#--add-dir=}")
       ;;
+    --add-dir-rw)
+      shift
+      if (( $# == 0 )); then
+        echo "safe: --add-dir-rw requires a directory argument" >&2
+        exit 1
+      fi
+      safehouse_args+=(--add-dirs="$1")
+      ;;
+    --add-dir-rw=*)
+      safehouse_args+=(--add-dirs="${1#--add-dir-rw=}")
+      ;;
+    --enable)
+      shift
+      if (( $# == 0 )); then
+        echo "safe: --enable requires a feature argument" >&2
+        exit 1
+      fi
+      safehouse_args+=(--enable="$1")
+      ;;
+    --enable=*)
+      safehouse_args+=("$1")
+      ;;
     *)
       cmd_args+=("$1")
       ;;
@@ -46,4 +62,10 @@ while (( $# )); do
   shift
 done
 
-exec safehouse "${safehouse_args[@]}" "${cmd_args[@]}"
+# Run AI agent CLIs inside Safehouse on macOS. Fall through to the real
+# command on systems where Safehouse is not installed.
+if ! command -v safehouse >/dev/null 2>&1; then
+  exec /usr/bin/env "${cmd_args[@]}"
+fi
+
+exec safehouse "${safehouse_args[@]}" -- "${cmd_args[@]}"
