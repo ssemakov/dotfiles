@@ -103,41 +103,7 @@ function git_branch_local_ls() {
 if command -v safehouse >/dev/null 2>&1; then
 
 safe() {
-  local -a safehouse_args cmd_args
-
-  # Folders always granted read/write access in the sandbox — extend this list as needed
-  local -a safehouse_rw_dirs=(
-    "$HOME/.crit"
-  )
-
-  safehouse_args=(--add-dirs-ro="$HOME/workspace")
-  [ -f "$HOME/.config/agent-safehouse/local-overrides.sb" ] && \
-    safehouse_args+=(--append-profile="$HOME/.config/agent-safehouse/local-overrides.sb")
-  for dir in "${safehouse_rw_dirs[@]}"; do
-    [ -d "$dir" ] && safehouse_args+=(--add-dirs="$dir")
-  done
-
-  while (( $# )); do
-    case "$1" in
-      --add-dir)
-        shift
-        if (( $# == 0 )); then
-          echo "safe: --add-dir requires a directory argument" >&2
-          return 1
-        fi
-        safehouse_args+=(--add-dirs-ro="$1")
-        ;;
-      --add-dir=*)
-        safehouse_args+=(--add-dirs-ro="${1#--add-dir=}")
-        ;;
-      *)
-        cmd_args+=("$1")
-        ;;
-    esac
-    shift
-  done
-
-  safehouse "${safehouse_args[@]}" "${cmd_args[@]}"
+  "$HOME/workspace/dotfiles/bin/safe" "$@"
 }
 
 # Sandboxed — the default. Just type the command name.

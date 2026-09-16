@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+
+# Run AI agent CLIs inside Safehouse on macOS. Fall through to the real
+# command on systems where Safehouse is not installed.
+if ! command -v safehouse >/dev/null 2>&1; then
+  exec "$@"
+fi
+
+safehouse_args=(--add-dirs-ro="$HOME/workspace")
+cmd_args=()
+
+safehouse_rw_dirs=(
+  "$HOME/.crit"
+)
+
+if [[ -f "$HOME/.config/agent-safehouse/local-overrides.sb" ]]; then
+  safehouse_args+=(--append-profile="$HOME/.config/agent-safehouse/local-overrides.sb")
+fi
+
+for dir in "${safehouse_rw_dirs[@]}"; do
+  [[ -d "$dir" ]] && safehouse_args+=(--add-dirs="$dir")
+done
+
+while (( $# )); do
+  case "$1" in
+    --)
+      shift
+      cmd_args+=("$@")
+      break
+      ;;
+    --add-dir)
+      shift
+      if (( $# == 0 )); then
+        echo "safe: --add-dir requires a directory argument" >&2
+        exit 1
+      fi
+      safehouse_args+=(--add-dirs-ro="$1")
+      ;;
+    --add-dir=*)
+      safehouse_args+=(--add-dirs-ro="${1#--add-dir=}")
+      ;;
+    *)
+      cmd_args+=("$1")
+      ;;
+  esac
+  shift
+done
+
+exec safehouse "${safehouse_args[@]}" "${cmd_args[@]}"

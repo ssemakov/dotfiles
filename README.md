@@ -7,10 +7,11 @@ Here are my dotfiles that I use on Mac and Linux systems. Organized by applicati
 - **zsh/** — oh-my-zsh config. `ZSH_CUSTOM` points into this repo (survives
   `omz update` without symlinking `custom/`). Custom themes
   (bullet-train/mira variants), aliases, and the tmux workspace commands
-  (`review` / `create` / `work`, section below). The `safe` wrapper runs AI
-  CLIs (`claude`, `codex`) inside the agent-safehouse macOS sandbox, with
-  read-only `~/workspace` by default; on machines without `safehouse` the
-  real binaries run directly. Per-OS extras live in `local/zshrc.local.*`.
+  (`review` / `create` / `work`, section below). The shared `bin/safe` wrapper
+  runs AI CLIs (`claude`, `codex`, and Neovim's ACP providers) inside the
+  agent-safehouse macOS sandbox, with read-only `~/workspace` by default; on
+  machines without `safehouse` the real binaries run directly. Per-OS extras
+  live in `local/zshrc.local.*`.
 - **nvim/** — LazyVim-based setup. Notable plugins:
   [crit-vim](https://github.com/ssemakov/crit-vim) (inline review
   of agent edits, my project), octo (GitHub PRs), diffview, neotest (rspec + vitest),
