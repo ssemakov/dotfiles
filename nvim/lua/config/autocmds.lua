@@ -77,3 +77,15 @@ vim.api.nvim_create_autocmd("InsertLeave", {
     vim.wo.cursorline = vim.w.local_cursorline ~= false
   end,
 })
+
+-- Snacks indent guides ship near-Comment brightness, which competes with code
+-- at this theme's contrast. Re-applied on ColorScheme; setting it wipes overrides.
+local indent_group = vim.api.nvim_create_augroup("local_indent_guide_dim", { clear = true })
+
+local function dim_indent_guides()
+  vim.api.nvim_set_hl(0, "SnacksIndent", { fg = "#1c2128" })
+  vim.api.nvim_set_hl(0, "SnacksIndentScope", { fg = "#2d333b" })
+end
+
+vim.api.nvim_create_autocmd("ColorScheme", { group = indent_group, callback = dim_indent_guides })
+dim_indent_guides()
