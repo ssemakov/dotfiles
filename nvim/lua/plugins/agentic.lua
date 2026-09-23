@@ -33,6 +33,11 @@ local function sandboxed(command, args, opts)
   if node_version then
     command_args[#command_args + 1] = "ASDF_NODEJS_VERSION=" .. node_version
   end
+
+  for name, value in pairs(opts.env or {}) do
+    command_args[#command_args + 1] = name .. "=" .. value
+  end
+
   command_args[#command_args + 1] = command
 
   return {
@@ -59,6 +64,9 @@ return {
       ["codex-acp"] = sandboxed("codex-acp", nil, {
         rw_dirs = { "~/.codex" },
         features = { "clipboard", "keychain" },
+        -- codex runs every command under sandbox-exec, which macOS refuses to nest
+        -- inside safehouse; full access drops that inner sandbox and its approvals
+        env = { INITIAL_AGENT_MODE = "agent-full-access" },
       }),
       ["opencode-acp"] = sandboxed("opencode", { "acp" }),
       ["cursor-acp"] = sandboxed("cursor-agent", { "acp" }),
