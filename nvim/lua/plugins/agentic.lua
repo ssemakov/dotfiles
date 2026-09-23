@@ -41,14 +41,20 @@ local function sandboxed(command, args, opts)
   }
 end
 
+-- safehouse only auto-selects its claude-code profile for a command named `claude`
+local claude = sandboxed("claude-agent-acp", nil, {
+  rw_dirs = { "~/.claude", "~/.claude.json" },
+  features = { "clipboard", "keychain" },
+})
+
 return {
   "carlos-algms/agentic.nvim",
   --- @type agentic.PartialUserConfig
   opts = {
     provider = "codex-acp",
     acp_providers = {
-      ["claude-agent-acp"] = sandboxed("claude-agent-acp", nil, { features = { "clipboard" } }),
-      ["claude-acp"] = sandboxed("claude-code-acp", nil, { features = { "clipboard" } }),
+      ["claude-agent-acp"] = claude,
+      ["claude-acp"] = claude, -- plugin default points at the renamed claude-code-acp binary
       ["gemini-acp"] = sandboxed("gemini", { "--acp" }),
       ["codex-acp"] = sandboxed("codex-acp", nil, {
         rw_dirs = { "~/.codex" },
