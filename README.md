@@ -27,6 +27,7 @@ Here are my dotfiles that I use on Mac and Linux systems. Organized by applicati
   (watch-and-sync changed files between two directories), `imgcat`
   (images in tmux), `ecs-deploy`, `reset-yubikey` / `restart-gpg-ssh`.
 - **ghostty/** — terminal config (TokyoNight, SSH terminfo integration).
+- **.config/svim/** — [native macOS mode overlay](.config/svim/README.md) for SketchyVim.
 - Plus small configs for asdf, bash, gh, gpg, powerline, pry, rubocop.
 
 ## Install
@@ -43,6 +44,9 @@ git clone <this-repo> ~/workspace/dotfiles
 - Install Homebrew (if missing) and the core formulae:
   `tmux neovim asdf gh gnupg pinentry-mac difftastic git-lfs`, plus
   `agent-safehouse` (the sandbox wrapper used by `.zshrc`).
+- Tap and trust `FelixKratz/formulae`, then install SketchyVim (`svim`).
+- Exclude Ghostty and Obsidian from SketchyVim and set the macOS text-selection
+  color to light brown (`#D2B48C`).
 - Install oh-my-zsh (framework only — our `.zshrc` and `custom/` replace its defaults).
 - Symlink every config into this repo. Existing **real** files are moved aside
   into `~/dotfiles-backup-<timestamp>/` first; existing symlinks are replaced silently.

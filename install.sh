@@ -52,6 +52,11 @@ if [ "$OS" = "Darwin" ]; then
   brew install \
     tmux neovim asdf gh gnupg pinentry-mac difftastic git-lfs deno ripgrep
 
+  log "Installing SketchyVim"
+  brew tap FelixKratz/formulae
+  brew trust --tap FelixKratz/formulae
+  brew install FelixKratz/formulae/svim
+
   log "Installing agent-safehouse (sandbox wrapper used by .zshrc)"
   brew install eugene1g/safehouse/agent-safehouse
 
@@ -210,11 +215,17 @@ link nvim                   "$HOME/.config/nvim"
 link gh/config.yml          "$HOME/.config/gh/config.yml"
 link powerline/config_files "$HOME/.config/powerline"
 
-# macOS-only: ghostty (mac terminal), agent-safehouse (mac sandbox), and gpg
+# macOS-only: ghostty, agent-safehouse, SketchyVim's overlay, and gpg
 # (config points at pinentry-mac). Skipped on Linux.
 if [ "$OS" = "Darwin" ]; then
   link ghostty/config                      "$HOME/.config/ghostty/config"
   link agent-safehouse/local-overrides.sb  "$HOME/.config/agent-safehouse/local-overrides.sb"
+  link .config/svim/svim.sh                "$HOME/.config/svim/svim.sh"
+  link .config/svim/overlay.m              "$HOME/.config/svim/overlay.m"
+  link .config/svim/blacklist              "$HOME/.config/svim/blacklist"
+
+  log "Setting macOS text-selection color to light brown (#D2B48C)"
+  defaults write NSGlobalDomain AppleHighlightColor -string "0.823529 0.705882 0.549020"
 
   # gpg (dir must be 700)
   mkdir -p "$HOME/.gnupg"; chmod 700 "$HOME/.gnupg"
