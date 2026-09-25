@@ -34,9 +34,10 @@ needed for the overlay. The manual commands above leave existing `svimrc` and
 
 ## Blacklist and selection color
 
-The included blacklist excludes `Ghostty` and `Obsidian`. SketchyVim compares
-exact, case-sensitive app names or bundle identifiers; lowercase `ghostty` does
-not match `Ghostty`. Keep one entry per line without surrounding whitespace.
+The included blacklist excludes `Ghostty` (by name and the bundle identifier
+`com.mitchellh.ghostty`) and `Obsidian`. SketchyVim compares exact, case-sensitive
+app names or bundle identifiers; lowercase `ghostty` does not match `Ghostty`.
+Keep one entry per line without surrounding whitespace.
 The blacklist is read at startup, so after editing `~/.config/svim/blacklist`, run:
 
 ```sh
@@ -45,6 +46,20 @@ brew services restart svim
 
 Switch to another application and back afterward so the app exclusion is checked.
 See [SketchyVim's blacklist implementation](https://github.com/FelixKratz/SketchyVim/blob/master/src/event_tap.c).
+
+If SketchyVim still swallows keys in Ghostty, including `i` in zsh's `/` history
+search, temporarily stop it with `brew services stop svim` to confirm the cause.
+The blacklist bypasses all keyboard handling for an app; it does not distinguish
+the shell prompt from history search. SketchyVim caches this decision from app
+activation notifications, so a bundle-ID entry cannot fix stale focus tracking.
+
+As a workaround, enable **Ghostty → Secure Keyboard Entry** in the macOS menu
+bar, then start svim again. Ghostty blocks external keyboard monitoring while
+active and releases secure input when switching to another app. This also
+affects other utilities that monitor keyboard events. Toggle the same menu item
+to disable it; the manual setting lasts until Ghostty quits. See
+[Ghostty's action reference](https://ghostty.org/docs/config/keybind/reference#toggle_secure_input)
+and [focus handling](https://github.com/ghostty-org/ghostty/blob/main/macos/Sources/Features/Secure%20Input/SecureInput.swift).
 
 The installer sets a light-brown selection color (`#D2B48C`). To apply it directly:
 
