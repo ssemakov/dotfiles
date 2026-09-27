@@ -1,7 +1,19 @@
 #!/bin/sh
-# SketchyVim supplies MODE=N/I/V/C/_, or an empty MODE when inactive.
+# SketchyVim supplies MODE and CMDLINE; our Vim hook adds SVIM_CMDTYPE.
 set -eu
 umask 077
+
+if [ "${1-}" = --setup ]; then
+  # Append one idempotent hook, preserving any existing mappings and settings.
+  svimrc="$HOME/.config/svim/svimrc"
+  hook='autocmd CmdlineEnter * let $SVIM_CMDTYPE = getcmdtype()'
+  mkdir -p "$(dirname "$svimrc")"
+  if [ ! -f "$svimrc" ] || ! grep -qxF "$hook" "$svimrc"; then
+    printf '\n%s\n' "$hook" >> "$svimrc"
+  fi
+  printf '%s\n' 'Command/search labels enabled. Restart SketchyVim to load the hook.'
+  exit 0
+fi
 
 config_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 cache_dir=${SVIM_OVERLAY_CACHE_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/svim-overlay}
@@ -13,14 +25,30 @@ case "${1-}" in
   '') mode=${MODE-} ;;
   --stop) mode=stop ;;
   --build) mode= ;;
-  *) printf 'Usage: %s [--build | --stop]\n' "$0" >&2; exit 2 ;;
+  *) printf 'Usage: %s [--setup | --build | --stop]\n' "$0" >&2; exit 2 ;;
 esac
 
-# Atomic replacement lets the overlay always read a complete mode. Write before
-# building so changes during the first compilation are not lost.
+# Only command mode carries text. SketchyVim may leave CMDLINE set after exiting
+# a command, so explicitly clear it for badges, inactivity, and shutdown.
+command_type=
+command_line=
+if [ "$mode" = C ]; then
+  case "${SVIM_CMDTYPE-}" in
+    :|/|'?') command_type=$SVIM_CMDTYPE ;;
+  esac
+  command_line=${CMDLINE-}
+fi
+
+# One atomic record: mode on line 1, command type on line 2, then the verbatim
+# command text (which may itself contain newlines). Never evaluate command text.
 if [ "${1-}" != --build ]; then
   state_tmp=$(mktemp "$cache_dir/mode.XXXXXX")
-  printf '%s\n' "$mode" > "$state_tmp"
+  if [ "$mode" = stop ]; then
+    # Keep shutdown compatible with an older helper during an upgrade.
+    printf 'stop\n' > "$state_tmp"
+  else
+    printf '%s\n%s\n%s' "$mode" "$command_type" "$command_line" > "$state_tmp"
+  fi
   mv -f "$state_tmp" "$cache_dir/mode"
 fi
 [ "${1-}" != --stop ] || exit 0

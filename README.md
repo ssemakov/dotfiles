@@ -27,7 +27,7 @@ Here are my dotfiles that I use on Mac and Linux systems. Organized by applicati
   (watch-and-sync changed files between two directories), `imgcat`
   (images in tmux), `ecs-deploy`, `reset-yubikey` / `restart-gpg-ssh`.
 - **ghostty/** — terminal config (TokyoNight, SSH terminfo integration).
-- **.config/svim/** — [native macOS mode overlay](.config/svim/README.md) for SketchyVim.
+- **.config/svim/** — [native macOS mode badges and live command/search bar](.config/svim/README.md) for SketchyVim.
 - Plus small configs for asdf, bash, gh, gpg, powerline, pry, rubocop.
 
 ## Install

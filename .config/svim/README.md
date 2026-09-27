@@ -1,36 +1,82 @@
 # SketchyVim mode overlay
 
 A small, click-through macOS badge appears for 0.9 seconds when SketchyVim
-changes mode: green **NORMAL**, blue **INSERT**, purple **VISUAL**, or orange
-**COMMAND**. It sits at the bottom center of the display containing the mouse
-pointer, works across Spaces, and does not take keyboard focus. An empty mode
-(SketchyVim inactive or an unsupported field) hides it immediately.
+enters **NORMAL**, **INSERT**, or **VISUAL** mode. Command mode opens a larger
+420 × 104 command bar with live, readable text and Enter/Escape hints:
+
+- `/` shows **SEARCH FORWARD** with a light-brown accent.
+- `?` shows **SEARCH BACKWARD** with a light-brown accent.
+- `:` shows **COMMAND** with an amber accent.
+
+The bar stays visible while typing, including when the query is empty. Enter or
+Escape returns to the small mode badge. Long input shows its ending with an
+ellipsis. It sits at the bottom center of the display containing the mouse
+pointer and stays on that display while editing. It works across Spaces without
+taking keyboard focus. An empty mode (inactive or unsupported field) hides it.
 
 Uses native AppKit; no SketchyBar or Hammerspoon required. The first invocation
 compiles `overlay.m` with Apple's Command Line Tools (`xcode-select --install`
 if missing). The executable and runtime files live in `~/.cache/svim-overlay/`
 or `$XDG_CACHE_HOME/svim-overlay/`. One helper stays running, sleeping until the
-mode file changes; repeated command-line updates do not redisplay the badge.
+state file changes. Command text updates in place; duplicate events do not
+redisplay the badge. Command text is cleared from the state file when leaving
+command mode.
 
 ## Install
 
 The dotfiles `install.sh` taps and trusts `FelixKratz/formulae`, installs
-SketchyVim, links the overlay and blacklist on macOS, and sets the macOS
-text-selection color to light brown. Existing files are backed up before linking.
-To install just this overlay, run from the dotfiles repository (back up an
-existing `svim.sh` first):
+SketchyVim, links the overlay and blacklist on macOS, enables command/search
+labels, and sets the macOS text-selection color to light brown. Existing files
+are backed up before linking. Existing `svimrc` settings are preserved.
+To install or upgrade just this overlay, run from the dotfiles repository.
+This backs up the installed hook and helper, then links both to this checkout.
+It preserves your blacklist and existing `svimrc` settings:
 
 ```sh
 mkdir -p ~/.config/svim
-ln -s "$PWD/.config/svim/svim.sh" ~/.config/svim/svim.sh
-ln -s "$PWD/.config/svim/overlay.m" ~/.config/svim/overlay.m
+.config/svim/svim.sh --stop
+svim_backup=$(mktemp -d "$HOME/.config/svim/backup.XXXXXX")
+for svim_file in svim.sh overlay.m; do
+  svim_target="$HOME/.config/svim/$svim_file"
+  if [ -e "$svim_target" ] || [ -L "$svim_target" ]; then
+    mv "$svim_target" "$svim_backup/$svim_file"
+  fi
+  ln -s "$PWD/.config/svim/$svim_file" "$svim_target"
+done
 ~/.config/svim/svim.sh --build
+~/.config/svim/svim.sh --setup
+brew services restart svim
 MODE=N ~/.config/svim/svim.sh
 ```
 
-SketchyVim invokes `~/.config/svim/svim.sh` automatically; no service restart is
-needed for the overlay. The manual commands above leave existing `svimrc` and
-`blacklist` files alone.
+SketchyVim invokes `~/.config/svim/svim.sh` automatically. `--setup` appends this
+hook to `~/.config/svim/svimrc` once, preserving existing settings:
+
+```vim
+autocmd CmdlineEnter * let $SVIM_CMDTYPE = getcmdtype()
+```
+
+SketchyVim supplies the command text without its `:`, `/`, or `?` prefix. This
+hook exports the type through the environment, so the overlay can distinguish
+search from commands without guessing from the text. Until the hook is loaded,
+the bar still shows live text with the neutral **COMMAND / SEARCH** label.
+
+If both files are already linked to this checkout, future upgrades only need:
+
+```sh
+~/.config/svim/svim.sh --stop
+~/.config/svim/svim.sh --build
+~/.config/svim/svim.sh --setup
+brew services restart svim
+```
+
+If `--setup` prints usage showing only `--build | --stop`, the installed hook
+is an older copy. Use the install/upgrade block above to update both `svim.sh`
+and `overlay.m` before running `--setup`.
+
+The next hook starts the helper. No changes to zsh's search or
+Ghostty's Secure Keyboard Entry are needed; this bar displays SketchyVim input
+in apps where SketchyVim is enabled.
 
 ## Blacklist and selection color
 
@@ -76,15 +122,20 @@ keep displaying the previous color. SketchyVim documents this setting in its
 ```sh
 MODE=I ~/.config/svim/svim.sh
 MODE=V ~/.config/svim/svim.sh
-MODE=C ~/.config/svim/svim.sh
+MODE=C SVIM_CMDTYPE=/ CMDLINE='meeting notes' ~/.config/svim/svim.sh
+MODE=C SVIM_CMDTYPE='?' CMDLINE='previous match' ~/.config/svim/svim.sh
+MODE=C SVIM_CMDTYPE=: CMDLINE='%s/old/new/g' ~/.config/svim/svim.sh
+MODE=N ~/.config/svim/svim.sh      # return to the short-lived badge
 MODE= ~/.config/svim/svim.sh       # hide immediately
 ~/.config/svim/svim.sh --stop      # stop the helper until the next hook
 ```
 
 To change the display duration, export `SVIM_OVERLAY_DURATION=1.5` near the top
 of `svim.sh`, before launching the helper. Stop the helper first so it picks up
-the new setting. Size, colors, and position are in `overlay.m`; stop the helper
-before changing that file, and the next hook recompiles it automatically.
+the new setting. This duration applies to mode badges; the command bar stays
+open until command mode ends. Size, colors, and position are in `overlay.m`;
+stop the helper before changing that file, and the next hook recompiles it
+automatically.
 
 For troubleshooting, run `svim.sh --build` in a terminal and inspect
 `~/.cache/svim-overlay/overlay.log`. If a build was forcibly killed, remove the
