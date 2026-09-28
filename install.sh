@@ -50,7 +50,7 @@ if [ "$OS" = "Darwin" ]; then
 
   log "Installing core formulae"
   brew install \
-    tmux neovim asdf gh gnupg pinentry-mac difftastic git-lfs deno ripgrep
+    tmux neovim asdf gh gnupg pinentry-mac difftastic git-lfs deno ripgrep codex-acp
 
   log "Installing SketchyVim"
   brew tap FelixKratz/formulae

@@ -42,7 +42,7 @@ git clone <this-repo> ~/workspace/dotfiles
 `install.sh` is idempotent (safe to re-run). It will:
 
 - Install Homebrew (if missing) and the core formulae:
-  `tmux neovim asdf gh gnupg pinentry-mac difftastic git-lfs`, plus
+  `tmux neovim asdf gh gnupg pinentry-mac difftastic git-lfs deno ripgrep codex-acp`, plus
   `agent-safehouse` (the sandbox wrapper used by `.zshrc`).
 - Tap and trust `FelixKratz/formulae`, then install SketchyVim (`svim`).
 - Exclude Ghostty and Obsidian from SketchyVim and set the macOS text-selection
