@@ -11,3 +11,10 @@ background = 000000
 # Cmd+Shift+I prompts for a tab name; a tab-level title outranks the
 # shell-integration title updates, so it sticks.
 keybind = cmd+shift+i=prompt_tab_title
+
+# Quake-style dropdown terminal. `global:` grabs the key system-wide, which
+# needs Accessibility permission for Ghostty in System Settings > Privacy.
+keybind = global:cmd+backquote=toggle_quick_terminal
+quick-terminal-position = top
+quick-terminal-screen = mouse
+quick-terminal-autohide = true
