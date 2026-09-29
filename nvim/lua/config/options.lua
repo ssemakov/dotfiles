@@ -2,6 +2,10 @@
 -- Default options that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/options.lua
 -- Add any additional options here
 
+if vim.g.neovide then
+  vim.o.guifont = "SF_Mono,Menlo,Symbols_Nerd_Font_Mono:h14"
+end
+
 -- LazyVim fills diff filler lines with "╱"; github-theme leaves DiffDelete's fg
 -- unset, so those stripes render in full-brightness Normal fg. Blank them out.
 vim.opt.fillchars:append({ diff = " " })
