@@ -78,6 +78,64 @@ The next hook starts the helper. No changes to zsh's search or
 Ghostty's Secure Keyboard Entry are needed; this bar displays SketchyVim input
 in apps where SketchyVim is enabled.
 
+## Ghostty quick terminal
+
+Cmd+` is handled by a separate native helper so SketchyVim cannot edit the
+previous app while Ghostty's nonactivating quick terminal has keyboard focus.
+Install it after starting Ghostty and SketchyVim (`brew services start svim`):
+
+```sh
+~/.config/svim/terminal-toggle.sh --install
+```
+
+The installer builds `Terminal Toggle.app`, reloads Ghostty's config, and
+installs a login agent. If macOS requests Accessibility access, enable **Terminal
+Toggle** in System Settings → Privacy & Security → Accessibility, then
+run the install command again. The app lives in `~/.cache/terminal-toggle/`
+(or `$XDG_CACHE_HOME/terminal-toggle/`). No Hammerspoon or patched SketchyVim
+binary is required. The helper currently expects Ghostty's English menu labels.
+
+The login agent waits silently if Accessibility access is missing and starts
+automatically when access is granted. Local builds use an ad-hoc signature tied
+to the binary's contents. After a code change, macOS may retain an obsolete
+permission entry even when its switch is on: remove **Terminal Toggle** with
+the minus button, then add the current `Terminal Toggle.app` with the plus
+button. Unchanged builds are reused to avoid unnecessary signature changes.
+
+Before showing the panel, the helper unloads the existing Homebrew SketchyVim
+launch agent. It restores that same service after the panel disappears,
+including click-away/autohide and shell exit. A service that was already stopped
+stays stopped. Cmd+` closes the panel too. Use this shortcut to open it: opening
+through Ghostty's menu directly bypasses the coordinated stop.
+
+Restoring SketchyVim resets its Vim buffer/mode. The helper briefly takes focus
+using an invisible window and returns it to the current app, because SketchyVim
+needs an app-activation event to initialize its blacklist after restarting. It
+waits for that event before reporting restoration complete. A saved
+`recovery.plist` survives helper crashes; launchd restarts the helper so it can
+finish restoration. Accessibility errors keep SketchyVim stopped until panel
+visibility can be established.
+
+```sh
+~/.config/svim/terminal-toggle.sh --check   # permission and panel visibility
+~/.config/svim/terminal-toggle.sh --status  # login agent status
+~/.config/svim/terminal-toggle.sh --update  # rebuild/restart; no Ghostty config reload
+~/.config/svim/terminal-toggle.sh --uninstall
+```
+
+Logs are in `~/.cache/terminal-toggle/helper.log`. After uninstalling, restore
+`keybind = global:cmd+backquote=toggle_quick_terminal` in `ghostty/config` and
+reload Ghostty to use its original shortcut. If recovery cannot finish, close
+the panel, run `brew services restart svim`, and switch applications once.
+
+For a build and lifecycle check without touching running apps or services:
+
+```sh
+xcrun clang -fobjc-arc -Wno-deprecated-declarations -framework Cocoa -framework Carbon \
+  ~/.config/svim/terminal-toggle-test.m -o /tmp/terminal-toggle-test
+/tmp/terminal-toggle-test
+```
+
 ## Blacklist and selection color
 
 The included blacklist excludes `Ghostty` (by name and the bundle identifier

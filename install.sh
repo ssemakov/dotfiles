@@ -224,7 +224,11 @@ if [ "$OS" = "Darwin" ]; then
   link .config/svim/svim.sh                "$HOME/.config/svim/svim.sh"
   link .config/svim/overlay.m              "$HOME/.config/svim/overlay.m"
   link .config/svim/blacklist              "$HOME/.config/svim/blacklist"
+  link .config/svim/terminal-toggle.sh      "$HOME/.config/svim/terminal-toggle.sh"
+  link .config/svim/terminal-toggle.m       "$HOME/.config/svim/terminal-toggle.m"
+  link .config/svim/terminal-toggle-test.m  "$HOME/.config/svim/terminal-toggle-test.m"
   "$DOT/.config/svim/svim.sh" --setup
+  log 'After starting Ghostty and SketchyVim, run ~/.config/svim/terminal-toggle.sh --install for Cmd+`'
 
   log "Setting macOS text-selection color to light brown (#D2B48C)"
   defaults write NSGlobalDomain AppleHighlightColor -string "0.823529 0.705882 0.549020"
