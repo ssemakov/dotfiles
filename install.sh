@@ -9,7 +9,7 @@
 # are replaced silently.
 set -euo pipefail
 
-DOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 BACKUP="$HOME/dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
 
 log()  { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
@@ -20,6 +20,19 @@ link() {
   local src="$DOT/$1" tgt="$2"
   [ -e "$src" ] || { warn "missing source: $src (skipped)"; return 0; }
   mkdir -p "$(dirname "$tgt")"
+  # A linked parent directory can redirect the target into this checkout.
+  # Never move/remove a source file while trying to install a home symlink.
+  local target_dir
+  target_dir="$(cd "$(dirname "$tgt")" && pwd -P)"
+  case "$target_dir" in
+    "$DOT"|"$DOT"/*)
+      warn "refusing to link inside the checkout: $tgt"
+      return 1
+      ;;
+  esac
+  if [ -L "$tgt" ] && [ "$(readlink "$tgt")" = "$src" ]; then
+    return 0
+  fi
   if [ -L "$tgt" ]; then
     rm "$tgt"
   elif [ -e "$tgt" ]; then
@@ -220,7 +233,15 @@ link powerline/config_files "$HOME/.config/powerline"
 if [ "$OS" = "Darwin" ]; then
   link ghostty/config                      "$HOME/.config/ghostty/config"
   link agent-safehouse/local-overrides.sb  "$HOME/.config/agent-safehouse/local-overrides.sb"
-  link .config/svim                        "$HOME/.config/svim"
+  # Keep this directory real: --setup writes machine-specific svimrc settings.
+  # Migrate directory links from older installs, preserving their contents.
+  if [ -L "$HOME/.config/svim" ]; then
+    mkdir -p "$BACKUP"
+    mv "$HOME/.config/svim" "$BACKUP/svim"
+    mkdir -p "$HOME/.config/svim"
+    cp -pR "$BACKUP/svim/." "$HOME/.config/svim/"
+    warn "backed up SketchyVim directory link -> $BACKUP/svim"
+  fi
   link .config/svim/svim.sh                "$HOME/.config/svim/svim.sh"
   link .config/svim/overlay.m              "$HOME/.config/svim/overlay.m"
   link .config/svim/blacklist              "$HOME/.config/svim/blacklist"
