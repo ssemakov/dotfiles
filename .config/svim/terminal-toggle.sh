@@ -10,8 +10,12 @@ label=com.ssemakov.terminal-toggle
 agent="$HOME/Library/LaunchAgents/$label.plist"
 domain="gui/$(id -u)"
 
+source_fingerprint() {
+  /usr/bin/shasum -a 256 "$config_dir/terminal-toggle.m" "$config_dir/terminal-toggle.sh"
+}
+
 build() {
-  fingerprint=$(/usr/bin/shasum -a 256 "$config_dir/terminal-toggle.m" "$config_dir/terminal-toggle.sh")
+  fingerprint=$(source_fingerprint)
   if [ -x "$binary" ] && [ -f "$cache_dir/build.sha256" ] \
       && [ "$(cat "$cache_dir/build.sha256")" = "$fingerprint" ] \
       && /usr/bin/codesign --verify --strict "$app" 2>/dev/null; then
@@ -40,6 +44,16 @@ case "${1-}" in
   --build) build ;;
   --check|--reload)
     [ -x "$binary" ] || build
+    exec "$binary" "$cache_dir" "$1"
+    ;;
+  --svim-stop|--svim-start)
+    # The running helper must match this command protocol. Updating explicitly
+    # also gives macOS a chance to request permission for a changed signature.
+    if [ ! -x "$binary" ] || [ ! -f "$cache_dir/build.sha256" ] \
+      || [ "$(cat "$cache_dir/build.sha256")" != "$(source_fingerprint)" ]; then
+      printf 'Update Terminal Toggle first: ~/.config/svim/terminal-toggle.sh --update\n' >&2
+      exit 1
+    fi
     exec "$binary" "$cache_dir" "$1"
     ;;
   --install|--update)
@@ -95,5 +109,5 @@ case "${1-}" in
   --status)
     /bin/launchctl print "$domain/$label"
     ;;
-  *) printf 'Usage: %s --build|--check|--reload|--install|--update|--uninstall|--status\n' "$0" >&2; exit 2 ;;
+  *) printf 'Usage: %s --build|--check|--reload|--install|--update|--uninstall|--status|--svim-stop|--svim-start\n' "$0" >&2; exit 2 ;;
 esac

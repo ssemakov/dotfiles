@@ -1,0 +1,3 @@
+#!/bin/sh
+# Resume SketchyVim once the floating terminal is closed.
+exec "$HOME/.config/svim/terminal-toggle.sh" --svim-start "$@"

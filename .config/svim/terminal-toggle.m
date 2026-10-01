@@ -74,6 +74,9 @@ static int Run(NSString *executable, NSArray<NSString *> *arguments, NSString **
 - (void)restoreService;
 - (void)toggle;
 - (void)poll;
+- (BOOL)manuallyStopped;
+- (void)handleControlRequest;
+- (NSArray<NSString *> *)servicePlistPathsForLabel:(NSString *)label;
 @end
 
 @implementation QuickTerminal
@@ -118,21 +121,42 @@ static int Run(NSString *executable, NSArray<NSString *> *arguments, NSString **
   return Run(@"/bin/launchctl", @[@"print", self.serviceTarget], NULL) == 0;
 }
 
+- (NSArray<NSString *> *)servicePlistPathsForLabel:(NSString *)label {
+  NSString *filename = [label stringByAppendingPathExtension:@"plist"];
+  return @[
+    [[NSHomeDirectory() stringByAppendingPathComponent:@"Library/LaunchAgents"] stringByAppendingPathComponent:filename],
+    [@"/opt/homebrew/opt/svim" stringByAppendingPathComponent:filename],
+    [@"/usr/local/opt/svim" stringByAppendingPathComponent:filename]
+  ];
+}
+
 - (void)discoverService {
   if ([self hasRecovery]) {
     NSString *label = [NSDictionary dictionaryWithContentsOfFile:self.recoveryFile][@"Label"];
     self.serviceTarget = label ? [NSString stringWithFormat:@"gui/%u/%@", getuid(), label] : nil;
     return;
   }
-  self.sourcePlist = nil;
-  self.serviceTarget = nil;
+  NSString *stoppedTarget = nil;
+  NSString *stoppedPlist = nil;
   for (NSString *label in @[@"sh.brew.svim", @"homebrew.mxcl.svim"]) {
-    NSString *file = [NSHomeDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"Library/LaunchAgents/%@.plist", label]];
-    if (![[NSFileManager defaultManager] fileExistsAtPath:file]) continue;
-    self.sourcePlist = file;
     self.serviceTarget = [NSString stringWithFormat:@"gui/%u/%@", getuid(), label];
-    if ([self serviceLoaded]) break;
+    self.sourcePlist = nil;
+    for (NSString *file in [self servicePlistPathsForLabel:label]) {
+      if (![[[NSDictionary dictionaryWithContentsOfFile:file] objectForKey:@"Label"] isEqual:label]) continue;
+      self.sourcePlist = file;
+      break;
+    }
+    // A bootstrapped job can outlive its original plist. Query launchd even
+    // when ~/Library/LaunchAgents has no file, and retain a loaded job whose
+    // plist is missing so pauseService reports the error instead of ignoring it.
+    if ([self serviceLoaded]) return;
+    if (!stoppedPlist && self.sourcePlist) {
+      stoppedTarget = self.serviceTarget;
+      stoppedPlist = self.sourcePlist;
+    }
   }
+  self.serviceTarget = stoppedTarget;
+  self.sourcePlist = stoppedPlist;
 }
 
 - (pid_t)servicePID {
@@ -148,15 +172,68 @@ static int Run(NSString *executable, NSArray<NSString *> *arguments, NSString **
   return [[NSFileManager defaultManager] fileExistsAtPath:self.recoveryFile];
 }
 
+- (BOOL)manuallyStopped {
+  if (!self.directory) return NO;
+  return [[NSFileManager defaultManager] fileExistsAtPath:[self.directory stringByAppendingPathComponent:@"manual-stop"]];
+}
+
+// Commands are handled by the running helper, serially with its timer and
+// hotkey callbacks. A CLI must not race launchctl against an ongoing restore.
+- (void)handleControlRequest {
+  if (!self.directory) return;
+  NSString *requestFile = [self.directory stringByAppendingPathComponent:@"control-request.plist"];
+  NSDictionary *request = [NSDictionary dictionaryWithContentsOfFile:requestFile];
+  if (!request) return;
+  NSString *action = request[@"action"];
+  NSString *marker = [self.directory stringByAppendingPathComponent:@"manual-stop"];
+  BOOL success = NO;
+  NSString *message = @"Unknown SketchyVim command.";
+  if ([action isEqual:@"stop"]) {
+    success = [@"paused\n" writeToFile:marker atomically:YES encoding:NSUTF8StringEncoding error:NULL];
+    if (success) success = [self pauseService];
+    if (success) {
+      self.waitingForActivation = NO;
+      self.restoring = NO;
+      self.returnApp = nil;
+      [self.focusWindow orderOut:nil];
+      if (NSApp.active) [NSApp hide:nil];
+    }
+    message = success ? @"SketchyVim stopped until you run svim-start."
+      : @"Could not stop SketchyVim; manual pause remains requested. Check helper.log.";
+  } else if ([action isEqual:@"start"]) {
+    success = YES;
+    if (![self hasRecovery]) {
+      [self discoverService];
+      NSData *plist = self.sourcePlist ? [NSData dataWithContentsOfFile:self.sourcePlist] : nil;
+      success = plist && [plist writeToFile:self.recoveryFile atomically:YES];
+    }
+    if (success && [self manuallyStopped]) {
+      success = [[NSFileManager defaultManager] removeItemAtPath:marker error:NULL];
+    }
+    message = success ? @"SketchyVim enabled; it resumes when the quick terminal is closed."
+      : @"Could not enable SketchyVim. Install its Homebrew service first; check helper.log.";
+  }
+  // Remove the request before acknowledging it so it cannot run twice.
+  [[NSFileManager defaultManager] removeItemAtPath:requestFile error:NULL];
+  [@{@"id": request[@"id"] ?: @"", @"success": @(success), @"message": message}
+      writeToFile:[self.directory stringByAppendingPathComponent:@"control-result.plist"] atomically:YES];
+}
+
 - (BOOL)pauseService {
   [self discoverService];
-  if (![self serviceLoaded]) return YES;
+  if (![self serviceLoaded]) {
+    NSLog(@"No loaded SketchyVim service found (target=%@, plist=%@).", self.serviceTarget, self.sourcePlist);
+    return YES;
+  }
   pid_t pid = [self servicePID];
   // Save before bootout. Launchd relaunches this helper after a crash, and the
   // saved plist lets it finish restoring the exact service it stopped.
   if (![self hasRecovery]) {
-    NSData *plist = [NSData dataWithContentsOfFile:self.sourcePlist];
-    if (!plist || ![plist writeToFile:self.recoveryFile atomically:YES]) return NO;
+    NSData *plist = self.sourcePlist ? [NSData dataWithContentsOfFile:self.sourcePlist] : nil;
+    if (!plist || ![plist writeToFile:self.recoveryFile atomically:YES]) {
+      NSLog(@"Could not save the SketchyVim service %@ from %@; keeping the quick terminal closed.", self.serviceTarget, self.sourcePlist);
+      return NO;
+    }
   }
   if (Run(@"/bin/launchctl", @[@"bootout", self.serviceTarget], NULL) != 0 && [self serviceLoaded]) {
     [[NSFileManager defaultManager] removeItemAtPath:self.recoveryFile error:NULL];
@@ -180,6 +257,7 @@ static int Run(NSString *executable, NSArray<NSString *> *arguments, NSString **
 }
 
 - (void)restoreService {
+  if ([self manuallyStopped]) { if (self.stopping) [NSApp terminate:nil]; return; }
   if (![self hasRecovery]) { if (self.stopping) [NSApp terminate:nil]; return; }
   if (![self serviceLoaded]) {
     NSString *domain = [NSString stringWithFormat:@"gui/%u", getuid()];
@@ -294,6 +372,7 @@ static int Run(NSString *executable, NSArray<NSString *> *arguments, NSString **
   if (self.toggling || self.polling) return;
   self.polling = YES;
   @try {
+    [self handleControlRequest];
     [self pollState];
   } @finally {
     self.polling = NO;
@@ -340,13 +419,52 @@ static OSStatus Hotkey(EventHandlerCallRef next, EventRef event, void *context) 
 }
 
 #ifndef TERMINAL_TOGGLE_TEST
+static int Control(NSString *directory, NSString *action) {
+  NSString *target = [NSString stringWithFormat:@"gui/%u/com.ssemakov.terminal-toggle", getuid()];
+  if (Run(@"/bin/launchctl", @[@"print", target], NULL) != 0) {
+    fprintf(stderr, "Terminal Toggle is not running. Run ~/.config/svim/terminal-toggle.sh --install first.\n");
+    return 1;
+  }
+  int lock = open([[directory stringByAppendingPathComponent:@"control.lock"] fileSystemRepresentation], O_CREAT | O_RDWR, 0600);
+  if (lock < 0 || flock(lock, LOCK_EX | LOCK_NB) != 0) {
+    if (lock >= 0) close(lock);
+    fprintf(stderr, "Another SketchyVim command is running; retry shortly.\n");
+    return 1;
+  }
+  NSString *identifier = NSUUID.UUID.UUIDString;
+  NSDictionary *request = @{@"id": identifier, @"action": action};
+  NSString *requestFile = [directory stringByAppendingPathComponent:@"control-request.plist"];
+  if (![request writeToFile:requestFile atomically:YES]) {
+    close(lock);
+    fprintf(stderr, "Could not send the SketchyVim command.\n");
+    return 1;
+  }
+  NSTimeInterval deadline = NSProcessInfo.processInfo.systemUptime + 8;
+  while (NSProcessInfo.processInfo.systemUptime < deadline) {
+    NSDictionary *result = [NSDictionary dictionaryWithContentsOfFile:[directory stringByAppendingPathComponent:@"control-result.plist"]];
+    if ([result[@"id"] isEqual:identifier]) {
+      BOOL success = [result[@"success"] boolValue];
+      fprintf(success ? stdout : stderr, "%s\n", [result[@"message"] UTF8String]);
+      close(lock);
+      return success ? 0 : 1;
+    }
+    [NSThread sleepForTimeInterval:0.05];
+  }
+  close(lock);
+  fprintf(stderr, "Terminal Toggle did not respond; the command may still be pending. Check its Accessibility permission and helper.log.\n");
+  return 1;
+}
+
 int main(int argc, const char *argv[]) {
   @autoreleasepool {
     umask(077);
-    if (argc != 3) { fprintf(stderr, "Usage: terminal-toggle CACHE_DIR --run|--check|--reload\n"); return 2; }
+    if (argc != 3) { fprintf(stderr, "Usage: terminal-toggle CACHE_DIR --run|--check|--reload|--svim-stop|--svim-start\n"); return 2; }
+    NSString *mode = @(argv[2]);
+    if ([mode isEqual:@"--svim-stop"] || [mode isEqual:@"--svim-start"]) {
+      return Control(@(argv[1]), [mode isEqual:@"--svim-stop"] ? @"stop" : @"start");
+    }
     [NSApplication sharedApplication];
     [NSApp setActivationPolicy:NSApplicationActivationPolicyAccessory];
-    NSString *mode = @(argv[2]);
     if (!AXIsProcessTrusted()) {
       if (![mode isEqual:@"--run"]) {
         NSDictionary *options = @{(__bridge NSString *)kAXTrustedCheckOptionPrompt: @YES};
@@ -389,7 +507,7 @@ int main(int argc, const char *argv[]) {
     if ([helper hasRecovery] && !helper.serviceTarget) { NSLog(@"Invalid recovery.plist; inspect it before restarting."); return 1; }
     // A reboot can reload the original Homebrew service while recovery state
     // still exists. Keep it stopped if Ghostty restored an open quick terminal.
-    if ([helper hasRecovery] && [helper visibility] != 0 && ![helper pauseService]) return 1;
+    if (([helper manuallyStopped] || ([helper hasRecovery] && [helper visibility] != 0)) && ![helper pauseService]) return 1;
     [NSWorkspace.sharedWorkspace.notificationCenter addObserver:helper selector:@selector(applicationActivated:)
         name:NSWorkspaceDidActivateApplicationNotification object:nil];
     EventTypeSpec event = {kEventClassKeyboard, kEventHotKeyPressed};

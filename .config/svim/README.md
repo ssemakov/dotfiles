@@ -116,6 +116,24 @@ waits for that event before reporting restoration complete. A saved
 finish restoration. Accessibility errors keep SketchyVim stopped until panel
 visibility can be established.
 
+To work on a website without SketchyVim, run `svim-stop` from any terminal,
+including the floating quick terminal. Closing the panel keeps SketchyVim
+stopped until you run `svim-start`. If you start it from the floating terminal,
+it resumes after the panel closes; from a regular terminal it resumes immediately.
+The commands are in the dotfiles `bin/` directory, already on PATH via `.zshrc`,
+and require the Terminal Toggle helper to be installed and running.
+The manual pause survives helper restarts until you explicitly enable it again.
+After upgrading these dotfiles, run `~/.config/svim/terminal-toggle.sh --update`
+once before using the commands. If macOS rejects the changed app's Accessibility
+permission, remove the old Terminal Toggle entry and add the current app again.
+
+```sh
+svim-stop
+# Close the quick terminal and use the website.
+svim-start
+# Close the quick terminal to resume SketchyVim.
+```
+
 ```sh
 ~/.config/svim/terminal-toggle.sh --check   # permission and panel visibility
 ~/.config/svim/terminal-toggle.sh --status  # login agent status

@@ -25,7 +25,8 @@ Here are my dotfiles that I use on Mac and Linux systems. Organized by applicati
   `agent-safehouse/local-overrides.sb` sandbox profile additions.
 - **bin/** — utilities: `tsave`/`trestore` (tmux layouts), `fsync`
   (watch-and-sync changed files between two directories), `imgcat`
-  (images in tmux), `ecs-deploy`, `reset-yubikey` / `restart-gpg-ssh`.
+  (images in tmux), `ecs-deploy`, `reset-yubikey` / `restart-gpg-ssh`,
+  `svim-stop` / `svim-start` (manual SketchyVim pause, including from the quick terminal).
 - **ghostty/** — terminal config (TokyoNight, SSH terminfo integration).
 - **.config/svim/** — [native macOS mode badges and live command/search bar](.config/svim/README.md) for SketchyVim.
 - Plus small configs for asdf, bash, gh, gpg, powerline, pry, rubocop.

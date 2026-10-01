@@ -1,0 +1,3 @@
+#!/bin/sh
+# Keep SketchyVim stopped after the floating terminal closes.
+exec "$HOME/.config/svim/terminal-toggle.sh" --svim-stop "$@"
