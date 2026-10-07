@@ -157,7 +157,7 @@ xcrun clang -fobjc-arc -Wno-deprecated-declarations -framework Cocoa -framework 
 ## Blacklist and selection color
 
 The included blacklist excludes `Ghostty` (by name and the bundle identifier
-`com.mitchellh.ghostty`) and `Obsidian`. SketchyVim compares exact, case-sensitive
+`com.mitchellh.ghostty`), `Obsidian`, and `ChatGPT`. SketchyVim compares exact, case-sensitive
 app names or bundle identifiers; lowercase `ghostty` does not match `Ghostty`.
 Keep one entry per line without surrounding whitespace.
 The blacklist is read at startup, so after editing `~/.config/svim/blacklist`, run:
