@@ -20,6 +20,7 @@ alias gbck='git checkout HEAD~1'
 # Worktree workspaces: worktree + tmux layout, under <repo>/../worktrees/<branch>.
 # review 1234        - review a PR
 # create simon/foo   - feature work: new branch off fresh origin/main, or existing branch
+# open simon/foo     - existing worktree only: no fetch/pull/create
 # review/create close - close current window; worktree is removed if clean, kept if dirty.
 # Layout: left 3/5 nvim | right 2/5 column = pair claude 4/9 / pair codex 4/9 / clear 1/9.
 
@@ -170,5 +171,22 @@ create() {
         git -C "$repo" worktree add -q --no-track -b "$branch" "$wt" "origin/${main:-main}" \
             || { echo "create: worktree add failed"; return 1; }
     fi
+    _wt_layout "$branch" "$wt"
+}
+
+# Shadows macOS open: paths, URLs and flags fall through to /usr/bin/open.
+open() {
+    local branch="$1"
+    if [[ -e "$branch" || "$branch" == -* || "$branch" == *://* ]]; then
+        command open "$@"; return $?
+    fi
+    [ -n "$branch" ] || { echo "usage: open <branch> | open close"; return 1; }
+    [ -n "$TMUX" ] || { echo "open: run inside tmux"; return 1; }
+    [ "$branch" = "close" ] && { _wt_close; return $?; }
+
+    local repo
+    repo=$(git rev-parse --show-toplevel 2>/dev/null) || { echo "open: not in a git repo"; return 1; }
+    local wt="$repo/../worktrees/$branch"
+    [ -d "$wt" ] || { echo "open: no worktree for $branch at ${wt:a}"; return 1; }
     _wt_layout "$branch" "$wt"
 }
