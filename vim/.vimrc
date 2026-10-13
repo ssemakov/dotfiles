@@ -17,6 +17,7 @@ Plugin 'VundleVim/Vundle.vim'
 Plugin 'tpope/vim-fugitive'
 Plugin 'tpope/vim-surround'
 Plugin 'wakatime/vim-wakatime'
+Plugin 'yegappan/lsp'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
@@ -56,6 +57,14 @@ silent! colorscheme retrobox
 ":set nu! rnu!
 
 autocmd FileType gitcommit setlocal spell
+
+" Harper grammar checker via LSP (brew install harper)
+autocmd User LspSetup call LspAddServer([#{
+      \ name: 'harper',
+      \ filetype: ['markdown', 'text', 'rst', 'gitcommit', 'mail'],
+      \ path: 'harper-ls',
+      \ args: ['--stdio'],
+      \ }])
 set complete+=kspell
 
 set tabstop=2
