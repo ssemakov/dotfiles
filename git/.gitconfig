@@ -70,3 +70,5 @@
 # user identity lives in ~/.gitconfig.local (untracked). install.sh seeds it.
 [include]
 	path = ~/.gitconfig.local
+[pull]
+	ff = only
