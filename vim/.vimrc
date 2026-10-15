@@ -65,6 +65,12 @@ autocmd User LspSetup call LspAddServer([#{
       \ path: 'harper-ls',
       \ args: ['--stdio'],
       \ }])
+
+" Yank with hard-wrapped paragraphs joined into single lines (blank line = paragraph break)
+command! -range=% YankJoined let @+ = join(map(
+      \ split(join(getline(<line1>, <line2>), "\n"), '\n\s*\n'),
+      \ {_, p -> substitute(p, '\n\s*', ' ', 'g')}), "\n\n")
+
 set complete+=kspell
 
 set tabstop=2
