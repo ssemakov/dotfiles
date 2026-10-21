@@ -4,6 +4,11 @@ return {
     opts = {
       inlay_hints = { enabled = false },
       servers = {
+        -- Harper grammar checker from brew, not mason. Prose only, same filetypes as .vimrc.
+        harper_ls = {
+          mason = false,
+          filetypes = { "markdown", "text", "rst", "gitcommit", "mail" },
+        },
         -- Bump tsserver heap: the wistia monorepo OOMs at vtsls's default
         -- 3072 MB, and V8's heap-limit abort() shows up as repeated SIGABRT
         -- crashes ("JS/TS language service crashed 5 times").
