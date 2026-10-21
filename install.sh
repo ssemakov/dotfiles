@@ -225,6 +225,7 @@ link asdf/.default-gems   "$HOME/.default-gems"
 
 # XDG configs (cross-platform)
 link nvim                   "$HOME/.config/nvim"
+link nvim-firenvim          "$HOME/.config/nvim-firenvim"
 link gh/config.yml          "$HOME/.config/gh/config.yml"
 link powerline/config_files "$HOME/.config/powerline"
 
