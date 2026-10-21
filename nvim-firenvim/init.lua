@@ -27,7 +27,12 @@ require("lazy").setup({
     "projekt0n/github-nvim-theme",
     name = "github-theme",
     config = function()
-      vim.cmd.colorscheme("github_light_default")
+      require("github-theme").setup({
+        -- High contrast maps hints to near-black fg.muted, so Harper's virtual text
+        -- looks like real text. Dim hints to the theme's fg.subtle gray.
+        specs = { github_light_high_contrast = { diag = { hint = "#66707b" } } },
+      })
+      vim.cmd.colorscheme("github_light_high_contrast")
     end,
   },
 })
