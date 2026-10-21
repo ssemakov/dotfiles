@@ -4,6 +4,9 @@ alias -s log="tail -f"
 
 alias ws='cd ~/workspace'
 
+# Neovide on the minimal browser-editing config; runs the GhostText server (nvim-ghost)
+alias ghost='NVIM_APPNAME=nvim-firenvim neovide'
+
 alias gl="git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative \$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')..\$(git rev-parse --abbrev-ref HEAD) | cat -n"
 alias gd="git branch -d"
 alias gD="git branch -D"
