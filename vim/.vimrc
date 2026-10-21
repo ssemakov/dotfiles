@@ -81,6 +81,10 @@ set list listchars=tab:⟶\ ,trail:·,extends:>,precedes:<,nbsp:%
 set list
 set showmatch " show matching brackets
 
+" Highlight / and * search matches; <C-l> clears until the next search
+set hlsearch incsearch
+nnoremap <silent> <C-l> :nohlsearch<CR><C-l>
+
 " Highlight current line
 set cursorline
 hi CursorLine   cterm=NONE ctermbg=blue
