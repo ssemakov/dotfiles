@@ -120,8 +120,19 @@ require("lazy").setup({
     "projekt0n/github-nvim-theme",
     name = "github-theme",
     config = function()
-      -- Not *_high_contrast: those color hints like body text, hiding Harper's virtual text.
-      vim.cmd.colorscheme("github_dark_default")
+      -- Follow macOS appearance (the key only exists in dark mode). firenvim's canvas has no
+      -- terminal to query, but every frame is a fresh nvim, so checking at startup is enough.
+      if vim.fn.system("defaults read -g AppleInterfaceStyle"):match("Dark") then
+        -- Not *_high_contrast: those color hints like body text, hiding Harper's virtual text.
+        vim.cmd.colorscheme("github_dark_default")
+      else
+        require("github-theme").setup({
+          -- High contrast maps hints to near-black fg.muted, so Harper's virtual text
+          -- looks like real text. Dim hints to the theme's fg.subtle gray.
+          specs = { github_light_high_contrast = { diag = { hint = "#66707b" } } },
+        })
+        vim.cmd.colorscheme("github_light_high_contrast")
+      end
     end,
   },
 })
