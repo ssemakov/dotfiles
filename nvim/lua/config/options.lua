@@ -3,7 +3,7 @@
 -- Add any additional options here
 
 if vim.g.neovide then
-  vim.o.guifont = "SF_Mono,Menlo,Symbols_Nerd_Font_Mono:h14"
+  vim.o.guifont = "JetBrainsMono Nerd Font:h14"
 end
 
 -- LazyVim fills diff filler lines with "╱"; github-theme leaves DiffDelete's fg
