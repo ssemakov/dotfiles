@@ -22,7 +22,8 @@ alias gbck='git checkout HEAD~1'
 
 # Worktree workspaces: worktree + tmux layout, under <repo>/../worktrees/<branch>.
 # review 1234        - review a PR
-# create simon/foo   - feature work: new branch off fresh origin/main, or existing branch
+# create simon/foo   - feature work: new branch off fresh origin/main, or existing branch;
+#                      single nvim pane instead of the layout below
 # open simon/foo     - existing worktree only: no fetch/pull/create
 # review/create close - close current window; worktree is removed if clean, kept if dirty.
 # Layout: left 3/5 nvim | right 2/5 column = pair claude 4/9 / pair codex 4/9 / clear 1/9.
@@ -174,7 +175,10 @@ create() {
         git -C "$repo" worktree add -q --no-track -b "$branch" "$wt" "origin/${main:-main}" \
             || { echo "create: worktree add failed"; return 1; }
     fi
-    _wt_layout "$branch" "$wt"
+    # Single pane: nvim only, no agent column.
+    local pane
+    pane=$(tmux new-window -P -F '#{pane_id}' -n "$branch" -c "$wt")
+    tmux send-keys -t "$pane" Escape i ' nvim' Enter
 }
 
 # Shadows macOS open: paths, URLs and flags fall through to /usr/bin/open.

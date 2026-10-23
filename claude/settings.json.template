@@ -5,7 +5,8 @@
   "enabledPlugins": {
     "claude-code-wakatime@wakatime": true,
     "ponytail@ponytail": true,
-    "ruby-lsp@claude-plugins-official": true
+    "ruby-lsp@claude-plugins-official": true,
+    "security-guidance@claude-plugins-official": false
   },
   "extraKnownMarketplaces": {
     "wakatime": {

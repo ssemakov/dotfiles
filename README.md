@@ -78,7 +78,7 @@ reopening a branch resumes its previous sessions. Requires
   `<repo>/../worktrees/<branch>`.
 - `create <branch>` — worktree for feature work. A new branch starts from
   freshly fetched `origin/main` with no upstream; an existing worktree gets an
-  ff-only pull when clean.
+  ff-only pull when clean. Opens a single nvim pane, without the agent column.
 - `work` — the same layout in the current directory, on the checked-out branch.
 - `review close` / `create close` — close the current workspace window. The
   worktree is removed when clean and kept when dirty.
