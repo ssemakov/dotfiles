@@ -16,6 +16,7 @@ Plugin 'VundleVim/Vundle.vim'
 " plugin on GitHub repo
 Plugin 'tpope/vim-fugitive'
 Plugin 'tpope/vim-surround'
+Plugin 'machakann/vim-highlightedyank'
 Plugin 'wakatime/vim-wakatime'
 Plugin 'yegappan/lsp'
 
@@ -33,6 +34,7 @@ filetype plugin indent on    " required
 "
 " see :h vundle for more details or wiki for FAQ
 " Put your non-Plugin stuff after this line
+set clipboard=unnamed
 set term=xterm-256color
 filetype plugin indent on
 syntax on
