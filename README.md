@@ -28,6 +28,10 @@ Here are my dotfiles that I use on Mac and Linux systems. Organized by applicati
   (images in tmux), `ecs-deploy`, `reset-yubikey` / `restart-gpg-ssh`,
   `svim-stop` / `svim-start` (manual SketchyVim pause, including from the quick terminal).
 - **ghostty/** — terminal config (TokyoNight, SSH terminfo integration).
+- **nvim-ovim/** — separate writing profile for ovim, with GitHub themes that
+  follow macOS light/dark appearance and Harper grammar checking.
+- **ovim/** — Alacritty popup launcher for that profile; **alacritty/** selects
+  JetBrainsMono Nerd Font Mono so Neovim icons render correctly.
 - **.config/svim/** — [native macOS mode badges and live command/search bar](.config/svim/README.md) for SketchyVim.
 - Plus small configs for asdf, bash, gh, gpg, powerline, pry, rubocop.
 
@@ -45,6 +49,7 @@ git clone <this-repo> ~/workspace/dotfiles
 - Install Homebrew (if missing) and the core formulae:
   `tmux neovim asdf gh gnupg pinentry-mac difftastic git-lfs deno ripgrep codex-acp`, plus
   `agent-safehouse` (the sandbox wrapper used by `.zshrc`).
+- Install JetBrainsMono Nerd Font for Alacritty.
 - Tap and trust `FelixKratz/formulae`, then install SketchyVim (`svim`).
 - Exclude Ghostty and Obsidian from SketchyVim and set the macOS text-selection
   color to light brown (`#D2B48C`).
@@ -64,6 +69,24 @@ Optional/work-specific tools (mysql, haproxy, nvm) are left commented out in
 - `exec zsh` — load the new config
 - Add asdf language plugins per project, e.g. `asdf plugin add ruby`
 - WakaTime prompts for an API key on first vim/nvim run (creates `~/.wakatime.cfg`)
+
+### ovim writing popup
+
+Enable **Use custom launcher script** in ovim's Edit Popup settings. The installer
+links `ovim/terminal-launcher.sh` to
+`~/Library/Application Support/ovim/terminal-launcher.sh`, the path ovim runs.
+Keep terminal prewarming disabled so each edit uses this launcher.
+
+The launcher runs Alacritty with `NVIM_APPNAME=nvim-ovim`, isolating the config
+and plugins from the main LazyVim and browser profiles. It preserves ovim's RPC
+connection for live sync; `:wq` saves and returns to the original app.
+Themes follow macOS appearance at startup and every three seconds while open.
+Wrapped-line `j`/`k`, clipboard paste, and Harper are enabled. Use `<Space>ca`
+for grammar fixes and `<Space>cd` for diagnostic details.
+
+Alacritty uses **JetBrainsMono Nerd Font Mono**. Reopen existing Alacritty
+windows after installing the font. Native fullscreen Space restrictions still
+apply to its popup.
 
 ## tmux workspaces (`review` / `create` / `work`)
 

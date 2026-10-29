@@ -16,7 +16,6 @@ Plugin 'VundleVim/Vundle.vim'
 " plugin on GitHub repo
 Plugin 'tpope/vim-fugitive'
 Plugin 'tpope/vim-surround'
-Plugin 'machakann/vim-highlightedyank'
 Plugin 'wakatime/vim-wakatime'
 Plugin 'yegappan/lsp'
 
@@ -34,7 +33,10 @@ filetype plugin indent on    " required
 "
 " see :h vundle for more details or wiki for FAQ
 " Put your non-Plugin stuff after this line
-set clipboard=unnamed
+" Yank/delete go to the system clipboard (* on macOS, + on Linux)
+set clipboard=unnamed,unnamedplus
+" Flash yanked text; built-in since Vim 9.1.1230, silently absent on older Vims
+silent! packadd! hlyank
 set term=xterm-256color
 filetype plugin indent on
 syntax on

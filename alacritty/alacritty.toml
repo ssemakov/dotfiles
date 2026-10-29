@@ -1,0 +1,5 @@
+# Use a patched text font, including its single-cell Nerd Font icons.
+# Installed by install.sh: brew install --cask font-jetbrains-mono-nerd-font
+[font.normal]
+family = "JetBrainsMono Nerd Font Mono"
+style = "Regular"

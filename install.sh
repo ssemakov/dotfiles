@@ -70,6 +70,9 @@ if [ "$OS" = "Darwin" ]; then
   brew trust --tap FelixKratz/formulae
   brew install FelixKratz/formulae/svim
 
+  log "Installing Nerd Font for Alacritty"
+  brew install --cask font-jetbrains-mono-nerd-font
+
   log "Installing agent-safehouse (sandbox wrapper used by .zshrc)"
   brew install eugene1g/safehouse/agent-safehouse
 
@@ -232,6 +235,9 @@ link powerline/config_files "$HOME/.config/powerline"
 # macOS-only: ghostty, agent-safehouse, SketchyVim's overlay, and gpg
 # (config points at pinentry-mac). Skipped on Linux.
 if [ "$OS" = "Darwin" ]; then
+  link nvim-ovim                           "$HOME/.config/nvim-ovim"
+  link alacritty/alacritty.toml             "$HOME/.config/alacritty/alacritty.toml"
+  link ovim/terminal-launcher.sh            "$HOME/Library/Application Support/ovim/terminal-launcher.sh"
   link ghostty/config                      "$HOME/.config/ghostty/config"
   link agent-safehouse/local-overrides.sb  "$HOME/.config/agent-safehouse/local-overrides.sb"
   # Keep this directory real: --setup writes machine-specific svimrc settings.
