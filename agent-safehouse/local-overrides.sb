@@ -1,12 +1,18 @@
 ;; Host-specific safehouse overrides for ssemakov's machine.
-;; Symlinked into ~/.config/agent-safehouse/local-overrides.sb (auto-loaded).
+;; Symlinked into ~/.config/agent-safehouse/local-overrides.sb; appended by bin/safe.
 
 ;; --- Network ---
-;; 20-network.sb already opens the network. Re-asserting so future tightening
-;; of the base profile doesn't silently break agent flows that need outbound
-;; HTTPS: rubocop fetching rule packs, gem/npm/cargo/go installs, and the
-;; agent's own API calls back to Anthropic/OpenAI/etc.
-(allow network*)
+;; Keep Safehouse's IP networking for APIs, package downloads, and dev servers.
+;; Block host IPC even when an optional integration grants a UNIX socket.
+(deny network-outbound
+  (remote unix-socket (path-regex #".*")))
+(deny network-bind network-inbound
+  (local unix-socket (path-regex #".*")))
+;; macOS DNS uses this system socket; it is not an agent command interface.
+(allow network-outbound (literal "/private/var/run/mDNSResponder"))
+
+;; Launch Services starts handlers outside the caller's sandbox.
+(deny lsopen)
 
 ;; --- Tool caches (read/write) ---
 ;; Tools that fetch external resources expect to cache them outside the
@@ -25,13 +31,22 @@
   (home-subpath "/.rustup")          ;; rust toolchains
 )
 
-;; --- Homebrew (read/write) ---
-;; Codex (and other agents) self-update via `brew upgrade --cask`, which writes
-;; to /opt/homebrew/var/homebrew/locks/* and the Caskroom. Granting RW so
-;; brew-driven self-updates don't error out on the lockfile.
-(allow file-read* file-write*
+;; --- Installed tools (read-only) ---
+;; Run upgrades from a trusted terminal, outside agent sessions.
+(allow file-read* (subpath "/opt/homebrew"))
+(deny file-write*
   (subpath "/opt/homebrew")
+  (home-subpath "/.asdf")
+  (home-subpath "/.config/asdf")
+  (home-subpath "/.local/share/asdf")
+  (home-literal "/.asdfrc")
+  (home-literal "/.tool-versions")
+  (home-subpath "/.local/bin")
+  (home-subpath "/.cargo/bin")
+  (home-subpath "/.rustup")
 )
+;; Preserve existing Homebrew service-data access, including MySQL.
+(allow file-read* file-write* (subpath "/opt/homebrew/var"))
 
 ;; --- Tool config (read-only) ---
 ;; Some tools refuse to start without reading their dotfiles.
@@ -50,7 +65,7 @@
 (allow mach-lookup
   (global-name "com.apple.sysmond")
 )
-(allow sysctl-read)
+;; Retain Safehouse's restrictions on other processes' argv and environment.
 
 ;; --- System resolver config (read-only) ---
 ;; Ruby's stdlib `resolv` (loaded transitively by rubocop's

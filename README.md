@@ -9,9 +9,9 @@ Here are my dotfiles that I use on Mac and Linux systems. Organized by applicati
   (bullet-train/mira variants), aliases, and the tmux workspace commands
   (`review` / `create` / `work`, section below). The shared `bin/safe` wrapper
   runs AI CLIs (`claude`, `codex`, and Neovim's ACP providers) inside the
-  agent-safehouse macOS sandbox, with read-only `~/workspace` by default; on
-  machines without `safehouse` the real binaries run directly. Per-OS extras
-  live in `local/zshrc.local.*`.
+  agent-safehouse macOS sandbox, with read-only `~/workspace` by default.
+  These entry points refuse to run if Safehouse or the local policy is missing.
+  Per-OS extras live in `local/zshrc.local.*`.
 - **nvim/** — LazyVim-based setup. Notable plugins:
   [crit-vim](https://github.com/ssemakov/crit-vim) (inline review
   of agent edits, my project), octo (GitHub PRs), diffview, neotest (rspec + vitest),
@@ -62,6 +62,47 @@ git clone <this-repo> ~/workspace/dotfiles
 
 Optional/work-specific tools (mysql, haproxy, nvm) are left commented out in
 `install.sh` — uncomment them there if needed.
+
+### Agent sandbox
+
+Use Safehouse 0.12.0 or newer (`brew upgrade eugene1g/safehouse/agent-safehouse`).
+Restart existing agent sessions after changing the policy or upgrading Safehouse;
+running processes retain their original sandbox.
+
+`bin/safe` keeps IP networking for APIs, package downloads, databases, and dev
+servers. UNIX socket connections and listeners are denied, except for the macOS
+DNS resolver. This is not HTTP-only filtering. Docker sockets, SSH-agent sockets,
+tmux/Neovim RPC, and browser integrations requiring UNIX sockets are unavailable.
+Keychain and clipboard access remain enabled for the configured ACP providers.
+
+Installed Homebrew software, asdf installations/configuration, `~/.local/bin`,
+`~/.cargo/bin`, and rustup toolchains are read-only. Update tools from a trusted
+terminal outside the agent sandbox. Homebrew service data under `/opt/homebrew/var`
+retains its existing read/write access. Shared caches and agent state remain
+writable; this policy does not isolate those between sessions.
+
+Avante defaults to Claude ACP through `bin/safe`, using Claude Code's authentication
+rather than its native API provider. Its ACP filesystem callbacks are disabled so
+file operations happen inside the agent sandbox. Save buffers before asking the
+agent to read their latest contents. Native API providers have tools disabled;
+the configured ACP alternatives also use `bin/safe`. Avante no longer auto-approves
+permission requests. Codex ACP retains its existing full-access mode inside the
+outer sandbox to avoid nesting `sandbox-exec`.
+
+The Avante integration guards its installed ACP client constructor because Avante
+does not expose a setting to disable host filesystem callbacks. After plugin
+updates, rerun the compatibility check below before using it.
+
+Run these checks from an ordinary terminal, outside another sandbox:
+
+```sh
+python3 tests/safehouse.py
+nvim --headless -u NONE -i NONE -l tests/avante_safehouse.lua
+```
+
+The first check uses disposable files and local servers, including a child process
+to check sandbox inheritance. The second exercises the installed Avante ACP client
+and configuration without making model requests.
 
 ### After install (manual, machine-specific)
 

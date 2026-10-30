@@ -97,10 +97,7 @@ function git_branch_local_ls() {
   fi
 }
 
-# Safehouse sandbox for AI agents (macOS only). Where `safehouse` is absent
-# (e.g. Linux dev boxes), the wrappers below are not defined, so `claude`,
-# `codex`, etc. fall through to the real binaries unsandboxed.
-if command -v safehouse >/dev/null 2>&1; then
+# Safehouse is required for these agent entry points; bin/safe fails closed.
 
 safe() {
   "$HOME/workspace/dotfiles/bin/safe" "$@"
@@ -111,8 +108,6 @@ claude()   { safe --enable=clipboard claude "$@"; }
 codex()    { safe --enable=clipboard codex "$@"; }
 amp()      { safe amp  "$@"; }
 gemini()   { NO_BROWSER=true safe gemini "$@"; }
-
-fi  # command -v safehouse
 
 
 # Set personal aliases, overriding those provided by oh-my-zsh libs,
