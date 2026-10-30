@@ -1,5 +1,12 @@
 # Use a patched text font, including its single-cell Nerd Font icons.
 # Installed by install.sh: brew install --cask font-jetbrains-mono-nerd-font
+[font]
+size = 13.25
+
 [font.normal]
 family = "JetBrainsMono Nerd Font Mono"
 style = "Regular"
+
+# Neovim selects the block/bar shape; make the insert-mode bar easier to see.
+[cursor]
+thickness = 0.3

@@ -17,6 +17,13 @@ vim.opt.rtp:prepend(lazypath)
 
 vim.g.mapleader = " "
 vim.o.termguicolors = true
+-- Use theme cursor colors in the terminal, including on empty cells.
+vim.opt.guicursor = {
+  "n-v-c-sm:block-Cursor/lCursor",
+  "i-ci-ve:ver35-Cursor/lCursor",
+  "r-cr-o:hor20-Cursor/lCursor",
+  "a:blinkon0",
+}
 vim.o.number = true
 vim.o.relativenumber = true
 vim.o.wrap = true
@@ -53,10 +60,32 @@ if vim.fn.executable("harper-ls") == 1 then
 end
 vim.diagnostic.config({ signs = false, virtual_text = false, float = { border = "rounded" } })
 
+local function sync_terminal_colors()
+  local normal = vim.api.nvim_get_hl(0, { name = "Normal", link = false })
+  if normal.fg and normal.bg then
+    -- Alacritty checks the underlying cell's contrast even for a custom cursor.
+    -- Blank cells inherit terminal defaults, so keep those in sync with Normal.
+    vim.api.nvim_ui_send(("\27]10;#%06x\7\27]11;#%06x\7"):format(normal.fg, normal.bg))
+  end
+end
+
 local function set_appearance(background)
   vim.o.background = background
   vim.cmd.colorscheme(background == "dark" and "github_dark_default" or "github_light_high_contrast")
+  sync_terminal_colors()
 end
+
+local terminal_colors_group = vim.api.nvim_create_augroup("OvimTerminalColors", { clear = true })
+vim.api.nvim_create_autocmd("UIEnter", {
+  group = terminal_colors_group,
+  callback = sync_terminal_colors,
+})
+vim.api.nvim_create_autocmd("VimLeavePre", {
+  group = terminal_colors_group,
+  callback = function()
+    vim.api.nvim_ui_send("\27]110\7\27]111\7")
+  end,
+})
 
 require("lazy").setup({
   {
@@ -66,6 +95,13 @@ require("lazy").setup({
     priority = 1000,
     config = function()
       require("github-theme").setup({
+        groups = {
+          github_light_high_contrast = {
+            Cursor = { fg = "#efe7d7", bg = "#332b22" },
+            Visual = { fg = "#efe7d7" },
+            VisualNOS = { link = "Visual" },
+          },
+        },
         specs = {
           github_light_high_contrast = {
             -- Warm paper backgrounds and softer text for the writing popup.
@@ -75,7 +111,7 @@ require("lazy").setup({
             bg3 = "#e2d7c3", -- cursor line
             fg0 = "#827765", -- line numbers
             fg1 = "#4c463c", -- body text
-            sel0 = "#d5d0bb", -- visual selection
+            sel0 = "#6b5740", -- visual selection
             diag = { hint = "#7b7465" },
           },
         },
